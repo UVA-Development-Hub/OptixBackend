@@ -12,6 +12,9 @@
 # npmjs
 /dist
 
+# downloads
+**/downloads/*
+
 # misc
 .DS_Store
 .env.local
