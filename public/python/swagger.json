@@ -1,0 +1,1534 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"title": "app",
+		"description": "",
+		"termsOfService": "",
+		"version": "0.1"
+	},
+	"paths": {
+		"/api/associated-tags": {
+			"get": {
+				"tags": [
+					"tags"
+				],
+				"description": "returns a json object of associated tags for a given key",
+				"parameters": [
+					{
+						"name": "metric",
+						"description": "name of the OpenTSDB metric you want to query; can be \"*\" for all metrics (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "tags",
+						"description": "key:value pairs you want to filter on (required argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "tag combinations matching your query",
+						"examples": {
+							"application/json": {
+								"00_a0_00_00_00": [
+									"abcd",
+									"efgh"
+								],
+								"...": []
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument or an error in your openTSDB query",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"OpenTSDB error": {
+								"message": "OpenTSDB response"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/entity": {
+			"delete": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "delete an entity and all of its associated metadata",
+				"parameters": [
+					{
+						"name": "ent_id",
+						"description": "UUID of the entity",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "ent_type_id",
+						"description": "UUID of the entity type (optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "entity deleted",
+						"examples": {
+							"msg": "entity {UUID of entity} and all its metadata was deleted"
+						}
+					},
+					"400": {
+						"description": "entity not deleted",
+						"examples": {
+							"msg": "no entities match your input",
+							"error": "some error message or None if valid query with no results"
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"get": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "get Entity by id or type id with the option to include metadata, and/or time series data within the (start_time - end_time) range",
+				"parameters": [
+					{
+						"name": "entity_id",
+						"description": "UUID of the entity (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "entity_type_id",
+						"description": "UUID of the entity type (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "include_metadata",
+						"description": "true if you want to incluede all metadata for the entity",
+						"in": "query",
+						"type": "boolean"
+					},
+					{
+						"name": "start_time",
+						"description": "begining of the time range for which you want time series data (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "end_time",
+						"description": "end of the time range for which you want time series data (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "include_time_series",
+						"description": "true if you want to include timeseries data",
+						"in": "query",
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the entities that match your query",
+						"examples": {
+							"application/json": {
+								"message": "successful query",
+								"results": [
+									{
+										"entity_id": "f0c5b215-d57f-4f37-98ee-2de1bb0d6155",
+										"time_series": [],
+										"entity_type_id": "9c08a069-7bca-4270-9a05-841535e3d342",
+										"is_class": false,
+										"parent_id": null
+									}
+								]
+							}
+						}
+					},
+					"400": {
+						"description": "query failed",
+						"examples": {
+							"missing argument": {
+								"message": "failed query"
+							},
+							"no results match the query": {
+								"message": "this query has no results"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"post": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Query for entities by entity type (byEntityType) or by event (byEvent) \n             byEntityType: allows you to to find all entities of a given type \n             byEvent: allows you to search for entities associated through event",
+				"parameters": [
+					{
+						"name": "ent_type_id",
+						"description": "UUID of the entity type \n 'byEntityType': required if ent_type isn't specified \n 'byEvent':NA",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "ent_type",
+						"description": "name of the entity type \n 'byEntityType': required if ent_type_id isn't specified \n 'byEvent':required",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "evt_type",
+						"description": "name of the event type \n'byEntityType': NA \n 'byEvent':required",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "actor_value",
+						"description": "meta value of the entity owning or performing the event\n 'byEntityType': NA \n 'byEvent':required",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "actor_field",
+						"description": "meta field name of the entity owning or performing the event \n 'byEntityType': NA \n 'byEvent':required",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the created entity",
+						"examples": {
+							"application/json": {
+								"type_id": "74158b1f-1c9c-4b20-9403-e56fa580bf62",
+								"entities": [
+									{
+										"entity_id": "4918f9af-d5ce-4e76-9474-bf49b26336f3",
+										"is_class": false,
+										"parent_id": null,
+										"entity_type_id": "74158b1f-1c9c-4b20-9403-e56fa580bf62"
+									},
+									{
+										"entity_id": "e9fea2f6-2a83-4d3c-819f-797f5f2c9cf3",
+										"is_class": false,
+										"parent_id": null,
+										"entity_type_id": "74158b1f-1c9c-4b20-9403-e56fa580bf62"
+									}
+								],
+								"type": "dog"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata api error": {
+								"type_id": null,
+								"entities": null,
+								"type": null
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Create a new entity with associated metadata in the metadata database",
+				"parameters": [
+					{
+						"name": "type_id",
+						"description": "UUID of the type (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "parent_id",
+						"description": "UUID of the parent class (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "class",
+						"description": "boolean of whether the entity is a class of entities or an object (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "metadata",
+						"description": "json of the meta control fields associated with this entity type (optional argument; e.g {field_name: value}, {\"name\":\"Bob\", \"hair color\":\"brown\"})",
+						"in": "query",
+						"type": "json"
+					},
+					{
+						"name": "time_series_link",
+						"description": "json-formatted list of the time-series link key, value pairs associated with this entity                 (optional argument; e.g [[\"field_name\", \"field_value\"]], [[\"metric\", \"Steam\"], [\"metric\", \"Condensate\"],[\"address\", \"988BAD213555\"]])",
+						"in": "query",
+						"type": "json"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the created entity",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata api error": {
+								"error": "insert or update on table \"entity\" violates foreign key constraint \"entity_entity_type_id_fkey\"\nDETAIL:  Key (entity_type_id)=(74158b1f-1c9c-4c20-9403-e56fa580bf62) is not present in table \"entity_types\".\n",
+								"message": "failed creation"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/entity-types": {
+			"delete": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "delete an entity type. Note: this will delete all entities of that type and their associated metadata",
+				"parameters": [
+					{
+						"name": "type",
+						"description": "the name of the entity type that is being deleted (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "entity_type_id",
+						"description": "the ID of the entity type that is being deleted (optional argument)",
+						"in": "query",
+						"type": "json"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "entity type deleted",
+						"examples": {
+							"msg": "entity type UUID of entity type:type name, all entities of this type, and all associated metadata were deleted"
+						}
+					},
+					"400": {
+						"description": "entity type not deleted",
+						"examples": {
+							"msg": "no entitiy types match your input",
+							"error": "some error message or None if valid query with no results"
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"get": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Get entity type information by type id, type, or neither.\n This will return type_id-type_name pairs. All rows are returned if neither parameter is passed.",
+				"parameters": [
+					{
+						"name": "type",
+						"description": "the name of the entity type that is being queried (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "entity_type_id",
+						"description": "the entity type ID that is being queried (optional argument)",
+						"in": "query",
+						"type": "json"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns a list of entity types that match your query",
+						"examples": {
+							"message": "successful query",
+							"results": [
+								{
+									"entity_type_id": "9c08a069-7bca-4270-9a05-841535e3d342",
+									"type": "Customer"
+								}
+							]
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"no matching data": {
+								"message": "this query has no results"
+							},
+							"metadata API error": {
+								"message": "failed query"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Add new entity type in the RDS metadata database with optional meta_control information",
+				"parameters": [
+					{
+						"name": "type",
+						"description": "the name of the entity type you want to create (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "meta_control",
+						"description": "json of the meta control fields associated with this entity type (optional argument;                  e.g {field_name: is_required (True/False)}, {\"name\":\"t\", \"hair color\":\"false\"})",
+						"in": "query",
+						"type": "json"
+					},
+					{
+						"name": "time_series_control",
+						"description": "list of the time-series link keys (in json format) allowed on this entity type                 (optional argument; e.g [\"field_name\"], [\"metric\",\"address\"])",
+						"in": "query",
+						"type": "json"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns ID of created entity type",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {
+								"message": "failed creation",
+								"error": "duplicate key value violates unique constraint \"entity_types_type_key\"\nDETAIL:  Key (type)=(dog) already exists.\n"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/event": {
+			"get": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Query for events based on type name, start time, end time, entity_id, and/or entity_type_id",
+				"parameters": [
+					{
+						"name": "event_type",
+						"description": "the name of the event type (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "start_time",
+						"description": "the start time of the event (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "end_time",
+						"description": "the end time of the event (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "entity_id",
+						"description": "the entity id for which you want related events (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "entity_type_id",
+						"description": "the entity type id for which you want related events (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "event_id",
+						"description": "the event id to get info for just this event (optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns ID of the created event",
+						"examples": {
+							"results": [
+								{
+									"event_type": "session",
+									"end_time": "None",
+									"event_type_id": "5899c849-ecca-4d42-b943-8a2b8420a450",
+									"start_time": "2018-01-01 00:00:00",
+									"event_id": "0a35eb74-ea02-4030-97a0-146546f6fcb2"
+								},
+								{
+									"event_type": "session",
+									"end_time": "None",
+									"event_type_id": "5899c849-ecca-4d42-b943-8a2b8420a450",
+									"start_time": "2018-03-19 18:54:47.189418",
+									"event_id": "22f749e0-e4ae-4dd8-975c-ed49ef019072"
+								},
+								{
+									"event_type": "session",
+									"end_time": "2018-01-01 00:00:00",
+									"event_type_id": "5899c849-ecca-4d42-b943-8a2b8420a450",
+									"start_time": "2018-01-01 00:00:00",
+									"event_id": "1877627f-30a6-413e-8641-004b1fc7f8a9"
+								},
+								{
+									"event_type": "session",
+									"end_time": "2018-01-02 00:00:00",
+									"event_type_id": "5899c849-ecca-4d42-b943-8a2b8420a450",
+									"start_time": "2018-01-01 00:00:00",
+									"event_id": "f4fef58e-d40a-4a02-bd72-543b990b9a3a"
+								}
+							],
+							"message": "successful query"
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"bad request": {
+								"message": "failed query"
+							},
+							"no results": {
+								"message": "no results for this query"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"post": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "update a specific event",
+				"parameters": [
+					{
+						"name": "event_id",
+						"description": "UUID of the event that is being updated (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "event_type_id",
+						"description": "UUID of the event type of the event that is being updated (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "start_time",
+						"description": "the start time of the event being updated (optional argument; will not be changed if left blank)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "end_time",
+						"description": "the end time of the event being updated (optional argument; will not be changed if left blank, set to 'None' to set to Null/open)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The event was updated",
+						"examples": {
+							"application/json": {
+								"msg": "event ID:event type ID had {} field values updated"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"application/json": {
+								"msg": "no events match your input",
+								"error": "error message or None if valid input but no results"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Add new event in the RDS metadata database",
+				"parameters": [
+					{
+						"name": "event_type_id",
+						"description": "the type id of the event (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "start_time",
+						"description": "the start time of the event (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "end_time",
+						"description": "the end time of the event. None can be used to indicate an ongoing event (optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns ID of the created event",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {
+								"error": "insert or update on table \"events\" violates foreign key constraint \"events_event_type_id_fkey\"\nDETAIL:  Key (event_type_id)=(3f86c8e6-365a-4290-986e-45027a5def02) is not present in table \"event_types\".\n",
+								"message": "failed creation"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/event-control": {
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Add new event control to a given event type in the RDS metadata database",
+				"parameters": [
+					{
+						"name": "event_type_id",
+						"description": "the type id of the event (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_table",
+						"description": "the table name of the object (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_type_id",
+						"description": "the type id of the object (required argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the event type on which you created an event control",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {
+								"error": "duplicate key value violates unique constraint \"event_control_pkey\"\nDETAIL:  Key (event_type_id, object_table, object_type_id)=(3f86c8e0-365a-4290-986e-45027a5def02, entity, 74158b1f-1c9c-4b20-9403-e56fa580bf62) already exists.\n",
+								"message": "failed creation"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/event-links": {
+			"get": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "get event links with option to filter by event_id,           event_type_id, object_table, object_table, object_id, or object_type_id",
+				"parameters": [
+					{
+						"name": "event_id",
+						"description": "the id of the event (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "event_type_id",
+						"description": "the type id of the event (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_table",
+						"description": "the table name of the object (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_id",
+						"description": "the id of the object (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_type_id",
+						"description": "the type id of the object (optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the event links that match your query",
+						"examples": {
+							"application/json": {
+								"message": "successful query",
+								"count": 2362,
+								"results": [
+									{
+										"event_id": "6d6ac81a-eb39-41c6-b7b1-69865804b486",
+										"event_type_id": "16d7e604-b593-4fc1-828d-26bb03832c44",
+										"object_table": "entity",
+										"object_id": "8cf152ed-b7cc-4bb6-989c-c165027c4045",
+										"object_type_id": "f79a623e-63b5-4985-b789-6036dc770698"
+									}
+								]
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Requests",
+						"examples": {
+							"invalid query": {
+								"message": "bad query"
+							},
+							"query that has no results": {
+								"message": "this query had no matching results"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Add new event links to a given event in the RDS metadata database. Event links allow entities/events to be associated with other entities/events",
+				"parameters": [
+					{
+						"name": "event_id",
+						"description": "the id of the event (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "event_type_id",
+						"description": "the type id of the event (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_table",
+						"description": "the table name of the object (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_id",
+						"description": "the id of the object (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "object_type_id",
+						"description": "the type id of the object (required argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the event on which you added an event link",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {
+								"error": "insert or update on table \"event_links\" violates foreign key constraint \"event_links_event_id_fkey\"\nDETAIL:  Key (event_id)=(16d7e604-b593-4fc1-828d-26bb03832c44) is not present in table \"events\".\n",
+								"message": "failed creation"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/event-type": {
+			"get": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Get event type information by type id, type, or neither.\n This will return type_id and type_name for events that match your query.          All rows are returned if neither parameter is passed.",
+				"parameters": [
+					{
+						"name": "type",
+						"description": "the name of the event type that is being queried (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "event_type_id",
+						"description": "the event type ID that is being queried (optional argument)",
+						"in": "query",
+						"type": "json"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns a list of event types that match your query",
+						"examples": {
+							"results": [
+								{
+									"type": "Install",
+									"event_type_id": "ab9a8e7e-d1cc-4fa8-a8bd-8d4300a7f452"
+								},
+								{
+									"type": "Scope",
+									"event_type_id": "16d7e604-b593-4fc1-828d-26bb03832c44"
+								}
+							],
+							"message": "successful query"
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"no matching data": {
+								"message": "this query has no results"
+							},
+							"metadata API error": {
+								"message": "failed query"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Add new event type in the RDS metadata database with optional event control information",
+				"parameters": [
+					{
+						"name": "type",
+						"description": "the name of the type of event that is being created (e.g. `Service`) (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "event_control",
+						"description": "a list of dicts (in JSON format) of the event control fields associated with this event type (optional argument);\n                    if used, required format is: \n e.g [{\"object_table\":<\"event\"|\"entity\">, \"object_type_ID\":<object UUID>},...]",
+						"in": "query",
+						"type": "json"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the created event type",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {
+								"error": "duplicate key value violates unique constraint \"event_types_type_key\"\nDETAIL:  Key (type)=(walk) already exists.\n",
+								"message": "failed creation"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/hello": {
+			"get": {
+				"tags": [
+					"healthcheck"
+				],
+				"description": "Shows if the api service is up and running",
+				"responses": {
+					"200": {
+						"description": "The API is live",
+						"examples": {
+							"healthy response": {
+								"response": "hello world"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/last": {
+			"get": {
+				"tags": [
+					"last"
+				],
+				"description": "query to locate the last data point for a set of metrics and optional tags in OpenTSDB",
+				"parameters": [
+					{
+						"name": "metric",
+						"description": "OpenTSDB metric to query (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "tags",
+						"description": "OpenTSDB tag key and tag value to search on (optional argument)",
+						"in": "query",
+						"type": "json"
+					},
+					{
+						"name": "backscan",
+						"description": "the number of hours to search in the past for data (optional argument defaults to 24 hours)",
+						"in": "query",
+						"type": "int"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "list of metrics, tag keys, or tag values",
+						"examples": {
+							"response": [
+								{
+									"metric": "pk.Steam",
+									"timestamp": 1525705190000,
+									"value": "21.8",
+									"tags": {
+										"serial": "321A0043",
+										"model": "TR-75wf",
+										"address": "3ca067586743"
+									},
+									"tsuid": "0004D30000130002E400001B0002E500001C0002E6"
+								}
+							]
+						}
+					},
+					"400": {
+						"description": "missing argument or an error in your openTSDB query",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"OpenTSDB error": {
+								"message": "OpenTSDB response"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/meta-control": {
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Add new meta control to a given entity type in the RDS metadata database",
+				"parameters": [
+					{
+						"name": "type_id",
+						"description": "UUID of the entity type (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "name",
+						"description": "name of the meta type/field (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "required",
+						"description": "True or False depending on if the metadata is required or not. (optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns ID of entity type on which you created a meta control",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument or an",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {
+								"error": "duplicate key value violates unique constraint \"meta_control_pkey\"\nDETAIL:  Key (entity_type_id, name)=(50702361-317d-4154-aa73-d249beab52e0, name) already exists.\n",
+								"message": "failed creation"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/metadata": {
+			"delete": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "delete a metadata field by entity id and field name",
+				"parameters": [
+					{
+						"name": "ent_id",
+						"description": "UUID of the entity (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "name",
+						"description": "the name of the field you want to delete (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "ent_type_id",
+						"description": "UUID of the entity type for the entity which you are deleting (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "value",
+						"description": "value of the field you want to delete (optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "entity deleted",
+						"examples": {
+							"msg": "meta field {name} was deleted on entity {entity id}"
+						}
+					},
+					"400": {
+						"description": "entity not deleted",
+						"examples": {
+							"msg": "metadata was not deleted",
+							"error": "some error message or None if valid query with no results"
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"get": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Get metadata for a given entity",
+				"parameters": [
+					{
+						"name": "entity_id",
+						"description": "UUID of the entity to which metadata is being added (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "fields",
+						"description": "metadata fields you want returned (a semicolon separated list of metadata field names; optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the entity to which you added metadata",
+						"examples": {
+							"application/json": {
+								"Description": "This is just some test data",
+								"Manufacturer": "Test steam trap",
+								"Model": "TST-1234"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"post": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "update metadata for a given entity",
+				"parameters": [
+					{
+						"name": "entity_id",
+						"description": "UUID of the entity on which metadata is being updated (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "name",
+						"description": "Name of the field you want to update (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "value",
+						"description": "Value you want to set the metadata field to (optional argument defaults to null)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "entity_type_id",
+						"description": "UUID of the entity's type on which metadata is being updated (optional argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The meta data field was updated",
+						"examples": {
+							"application/json": {
+								"msg": "metadata field {Name} for entity {entity_id} was updated to have a value of {value}"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"application/json": {
+								"msg": "no metadata entries match your input",
+								"error": "error message or None if valid input but no results"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": [
+					"metadata db"
+				],
+				"description": "Add new metadata to a given entity in the RDS metadata database",
+				"parameters": [
+					{
+						"name": "entity_id",
+						"description": "id of the entity to which metadata is being added (e.g. Name; required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "type_id",
+						"description": "type id of the entity (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "name",
+						"description": "key in the key:value pair, must match allowed name for this entity type (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "value",
+						"description": "value in the key:value pair (required argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns the ID of the entity on which you added metadata",
+						"examples": {
+							"application/json": {
+								"ID": "dab64c89-998d-4614-bc87-b02408e03e99",
+								"message": "successful creation"
+							}
+						}
+					},
+					"400": {
+						"description": "missing argument",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"metadata API error": {
+								"error": "insert or update on table \"metadata\" violates foreign key constraint \"metadata_entity_id_fkey\"\nDETAIL:  Key (entity_id)=(dab64c89-998d-4614-bc87-b02408e03e99) is not present in table \"entity\".\n",
+								"message": "failed creation"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/search": {
+			"get": {
+				"tags": [
+					"search"
+				],
+				"description": "for possible types `t` (\"metrics\", \"tagk\", \"tagv\") returns up to `max` values that have a prefix of `q`",
+				"parameters": [
+					{
+						"name": "t",
+						"description": "one of the following types \"metrics\", \"tagk\", \"tagv\" (tagk = tag keys, tagv = tag values) (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "q",
+						"description": "prefix of all values that will be returned (optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "max",
+						"description": "maximum number of values (optional argument)",
+						"in": "query",
+						"type": "int"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "list of metrics, tag keys, or tag values",
+						"examples": {
+							"response": [
+								"pk.Condensate",
+								"pk.Steam",
+								"pk.humidity",
+								"pk.power",
+								"pk.rssi",
+								"pk.temperature",
+								"pk.temperature1",
+								"pk.temperature2"
+							]
+						}
+					},
+					"400": {
+						"description": "missing argument or an error in your openTSDB query",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"OpenTSDB error": {
+								"message": "OpenTSDB response"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/tag": {
+			"get": {
+				"tags": [
+					"tags"
+				],
+				"description": "returns a list of tags for a given key",
+				"parameters": [
+					{
+						"name": "metric",
+						"description": "name of the OpenTSDB metric you want to query; can be \"*\" for all metrics (required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "tag",
+						"description": "key for which you want to get the tags (required argument)",
+						"in": "query",
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "All values for given key",
+						"examples": {
+							"response": [
+								"00_a0_00_00_00",
+								"..."
+							]
+						}
+					},
+					"400": {
+						"description": "missing argument or an error in your openTSDB query",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"OpenTSDB error": {
+								"message": "OpenTSDB response"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		},
+		"/api/timeseries": {
+			"get": {
+				"tags": [
+					"timeseries"
+				],
+				"description": "returns timeseries data for a metric and set of tags over a time range",
+				"parameters": [
+					{
+						"name": "start_time",
+						"description": "beginning of the timerange of interest (format: Unix timestamp, yyyy/mm/dd hh:mm:ss, now, 1d-ago, or 1h-ago; required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "end_time",
+						"description": "end of the timerange of interest (format: Unix timestamp, yyyy/mm/dd hh:mm:ss, now, 1d-ago, or 1h-ago; optional argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "metric",
+						"description": "name of the OpenTSDB metric queried(required argument)",
+						"in": "query",
+						"type": "string"
+					},
+					{
+						"name": "tags",
+						"description": "key:value pairs to filter on (optional argument)",
+						"in": "query",
+						"type": "object"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "returns timeseries data that matching the given query",
+						"examples": {
+							"response": [
+								{
+									"metric": "pk.temperature",
+									"tags": {},
+									"aggregateTags": [
+										"address",
+										"controlNode"
+									],
+									"dps": {
+										"1518220811": 289.90625,
+										"1518220821": 290.0833333333333
+									}
+								}
+							]
+						}
+					},
+					"400": {
+						"description": "missing argument or an error in your openTSDB query",
+						"examples": {
+							"missing argument": {
+								"message": "you are missing argument {required arg}"
+							},
+							"OpenTSDB error": {
+								"message": "OpenTSDB response"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basicAuth": []
+					}
+				]
+			}
+		}
+	},
+	"securityDefinitions": {
+		"basicAuth": {
+			"type": "basic"
+		}
+	}
+}
