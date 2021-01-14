@@ -28,7 +28,7 @@ function query(endPoint, parameters, method) {
 function wrapper(required, optional) {
     const params = {};
     for (const req in required) {
-        if (!required[req]) return null;
+        if (required[req] === undefined) return null;
         params[req] = required[req];
     }
     for (const opt in optional) {

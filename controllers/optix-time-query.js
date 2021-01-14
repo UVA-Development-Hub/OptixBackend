@@ -4,11 +4,19 @@ async function timeseries(req, res, next) {
     const metric = req.query.metric;
     const start_time = req.query.start_time;
     const options = req.query;
-    const result = await optixHelper.timeseries(metric, start_time, options);
-
-    if (result && result.status === 200 && result.statusText === "OK") {
-        res.json(result.data);
-    } else {
+    try {
+        const result = await optixHelper.timeseries(metric, start_time, options);
+        if (result && result.status === 200 && result.statusText === "OK") {
+            req.query.result = result.data;
+            next();
+        } else {
+            res.status(404);
+            res.render("query parameter error");
+        }
+    } catch (err) {
+        if (err.response && err.response.config && err.response.data) {
+            console.error(err.response.config, err.response.data);
+        }
         res.status(404);
         res.render("error");
     }
