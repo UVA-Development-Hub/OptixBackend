@@ -1,4 +1,4 @@
-const optixHelper = require("./optix-time-query-utils");
+const optixHelper = require("../utils/optix-time-query-utils");
 
 async function timeseries(req, res, next) {
     const metric = req.query.metric;
@@ -7,7 +7,7 @@ async function timeseries(req, res, next) {
     try {
         const result = await optixHelper.timeseries(metric, start_time, options);
         if (result && result.status === 200 && result.statusText === "OK") {
-            req.query.result = result.data;
+            res.locals.data = result.data;
             next();
         } else {
             res.status(404);

@@ -20,7 +20,7 @@ module.exports = function (req, res) {
     const start_time = req.query.start_time;
     const end_time = req.query.end_time;
     const metric = req.query.metric;
-    const data = req.query.result;
+    const data = res.locals.data;
 
     const filePath = saveData(data, metric, start_time, end_time);
 
