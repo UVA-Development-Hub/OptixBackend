@@ -1,18 +1,27 @@
-var createError = require("http-errors");
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
+const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const routes = require(__dirname + "/routes");
-var app = express();
+const routes = require("./routes");
+const app = express();
+
+const rfs = require("rotating-file-stream");
+const logger = require("morgan");
+
+const accessLogStream = rfs.createStream("access.log", {
+    maxFiles: 20,
+    size: "50M",
+    interval: "1d", // rotate daily
+    path: path.join(__dirname, "log"),
+});
+app.use(logger("combined", { stream: accessLogStream }));
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 
 app.use(cors());
-app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
