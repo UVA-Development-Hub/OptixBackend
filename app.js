@@ -14,7 +14,7 @@ const accessLogStream = rfs.createStream("access.log", {
     maxFiles: 20,
     size: "50M",
     interval: "1d", // rotate daily
-    path: path.join(__dirname, "log/access"),
+    path: path.join(__dirname, "logs/access"),
 });
 app.use(logger("combined", { stream: accessLogStream }));
 
