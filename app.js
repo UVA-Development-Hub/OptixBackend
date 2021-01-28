@@ -1,27 +1,23 @@
 const createError = require("http-errors");
+const HTTPStatuses = require("statuses");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
 const routes = require("./routes");
+require("dotenv").config();
 const app = express();
 
+// log
 const rfs = require("rotating-file-stream");
 const logger = require("morgan");
-
 const accessLogStream = rfs.createStream("access.log", {
     maxFiles: 20,
     size: "50M",
     interval: "1d", // rotate daily
-    path: path.join(__dirname, "log"),
+    path: path.join(__dirname, "log/access"),
 });
 app.use(logger("combined", { stream: accessLogStream }));
 
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
-
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -36,13 +32,47 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
-    console.error(err.stack);
-    // render the error page
-    res.status(err.status || 500);
-    res.render("error");
+    let messageToSend = null;
+    if (err instanceof createError.HttpError) {
+        // handle http err
+        messageToSend = { message: err.message };
+
+        if (process.env.NODE_ENV === "development") {
+            messageToSend.stack = err.stack;
+        }
+
+        messageToSend.status = err.statusCode;
+    } else {
+        // log other than HTTP errors
+        console.error(err.stack);
+    }
+
+    if (process.env.NODE_ENV === "production" && !messageToSend) {
+        messageToSend = { message: "Something broke", status: 500 };
+    }
+
+    if (messageToSend) {
+        let statusCode = parseInt(messageToSend.status, 10);
+        let statusName = HTTPStatuses(statusCode);
+
+        res.status(statusCode);
+        let responseObject = {
+            error: statusName,
+            code: statusCode,
+            message: messageToSend.message,
+        };
+
+        if (messageToSend.stack) {
+            responseObject.stack = messageToSend.stack;
+        }
+
+        res.json(responseObject);
+        return;
+    }
+
+    // if this is not HTTP error and we are not in production,
+    // send all error
+    res.status(500).json(err);
 });
 
 module.exports = app;
