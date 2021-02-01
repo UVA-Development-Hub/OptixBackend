@@ -1,11 +1,12 @@
 const axios = require("axios");
+require("dotenv").config();
 
 const queryAgent = axios.create({
     baseURL: "https://uva.optix.earth/api/",
     timeout: 1000,
     auth: {
-        username: "admin",
-        password: "password",
+        username: process.env.OPTIX_TIME_USERNAME,
+        password: process.env.OPTIX_TIME_PASSWORD,
     },
 });
 
@@ -28,7 +29,7 @@ function query(endPoint, parameters, method) {
 function wrapper(required, optional) {
     const params = {};
     for (const req in required) {
-        if (required[req] === undefined) return null;
+        if (required[req] === undefined || required[req] === null) return null;
         params[req] = required[req];
     }
     for (const opt in optional) {
@@ -37,7 +38,7 @@ function wrapper(required, optional) {
     return params;
 }
 
-function search(t, options) {
+async function search(t, options) {
     if (!options) options = {};
     const params = wrapper(
         { t: t },
@@ -46,12 +47,12 @@ function search(t, options) {
             max: options.hasOwnProperty("max") ? options.max : null,
         }
     );
-    if (!params) return null;
-    return query("search", params, "get");
+    return await query("search", params, "get");
 }
 
 async function timeseries(metric, start_time, options) {
     if (!options) options = {};
+    console.log(metric, start_time);
     const params = wrapper(
         {
             metric: metric,
@@ -62,7 +63,6 @@ async function timeseries(metric, start_time, options) {
             tags: options.hasOwnProperty("tags") ? options.tags : null,
         }
     );
-    if (!params) return null;
     return await query("timeseries", params, "get");
 }
 
@@ -83,7 +83,6 @@ function getEntity(options) {
                 : null,
         }
     );
-    if (!params) return null;
     return query("entity", params, "get");
 }
 
@@ -100,7 +99,6 @@ function putEntity(type_id, options) {
                 : null,
         }
     );
-    if (!params) return null;
     return query("entity", params, "put");
 }
 
@@ -112,7 +110,6 @@ function getMetadata(entity_id, options) {
             fields: options.hasOwnProperty("ent_type_id") ? options.fields : null,
         }
     );
-    if (!params) return null;
     return query("metadata", params, "get");
 }
 
@@ -127,7 +124,6 @@ function postMetadata(entity_id, name, options) {
                 : null,
         }
     );
-    if (!params) return null;
     return query("metadata", params, "post");
 }
 
@@ -136,7 +132,6 @@ function putMetadata(entity_id, type_id, name, value) {
         { entity_id: entity_id, type_id: type_id, name: name, value: value },
         {}
     );
-    if (!params) return null;
     return query("metadata", params, "put");
 }
 
@@ -151,7 +146,6 @@ function deleteMetadata(ent_id, name, options) {
                 : null,
         }
     );
-    if (!params) return null;
     return query("metadata", params, "delete");
 }
 
@@ -163,19 +157,9 @@ function putMetaControl(type_id, name, options) {
             required: options.hasOwnProperty("required") ? options.required : null,
         }
     );
-    if (!params) return null;
     return query("meta-control", params, "put");
 }
 
 module.exports = {
     query: query,
-    search: search,
-    timeseries: timeseries,
-    getEntity: getEntity,
-    putEntity: putEntity,
-    getMetadata: getMetadata,
-    postMetadata: postMetadata,
-    putMetadata: putMetadata,
-    deleteMetadata: deleteMetadata,
-    putMetaControl: putMetaControl,
 };
