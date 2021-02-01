@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const queryAgent = axios.create({
     baseURL: "https://uva.optix.earth/api/",
-    timeout: 1000,
+    timeout: process.env.TIMEOUT || 0,
     auth: {
         username: process.env.OPTIX_TIME_USERNAME,
         password: process.env.OPTIX_TIME_PASSWORD,
