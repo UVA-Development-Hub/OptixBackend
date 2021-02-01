@@ -20,10 +20,17 @@ async function timeseries(req, res, next) {
     const options = req.query;
     try {
         const result = await optixHelper.query(endpoint, options, "get");
-        res.status(200).json({
-            status: "success",
-            data: result.data,
-        });
+        if (req.originalUrl.includes("download")) {
+            // return data to next for download
+            res.locals.data = result.data;
+            next();
+        } else {
+            // return data to json
+            res.status(200).json({
+                status: "success",
+                data: result.data,
+            });
+        }
     } catch (err) {
         if (
             err.response &&
