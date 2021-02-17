@@ -86,7 +86,10 @@ async function getMetadata(req, res, next) {
  * Description:
  *      update metadata
  *
- * @param {object[]} metadata metadata to be added
+ * @param {object[]} metadata metadata to be updated
+ * @param {string} metadata[].entity_id
+ * @param {string} metadata[].name
+ * @param {string} metadata[].value
  */
 async function updateMetadata(metadata) {
     for (const item of metadata) {
@@ -98,7 +101,9 @@ async function updateMetadata(metadata) {
  * Description:
  *      delete metadata
  *
- * @param {object[]} metadata metadata to be added
+ * @param {object[]} metadata metadata to be deleted
+ * @param {string} metadata[].ent_id
+ * @param {string} metadata[].name
  */
 async function deleteMetadata(metadata) {
     for (const item of metadata) {
@@ -111,32 +116,39 @@ async function deleteMetadata(metadata) {
  *      add metadata
  *
  * @param {object[]} metadata metadata to be added
+ * @param {string} metadata[].entity_id
+ * @param {string} metadata[].type_id
+ * @param {string} metadata[].name
+ * @param {string} metadata[].value
  */
 async function addMetadata(metadata) {
+    // no metadata need to be added
+    if (!metadata.length) return;
+    // make a set of field name of the entity type
+    const entity_type_id = metadata[0]["type_id"];
+    const result = await optixHelper.query(
+        "meta-control",
+        { entity_type_id: entity_type_id },
+        "get"
+    );
+    const fieldSet = new Set();
+    for (const info of result.data.results) {
+        fieldSet.add(info.name);
+    }
+    // add metadata
     for (const item of metadata) {
-        try {
-            // add metadata
-            // check if the entity type has the field by adding metadata directly
-
-            await optixHelper.query("metadata", item, "put");
-        } catch (err) {
-            if (
-                err.response.status === 400 &&
-                err.response.data.message === "failed creation"
-            ) {
-                const metaControlOption = {
-                    type_id: item.type_id,
-                    name: item.namem,
-                    required: false,
-                };
-                // add metadata fields to entity type
-                await optixHelper.query("meta-control", metaControlOption, "put");
-                // add metadata again
-                await optixHelper.query("metadata", item, "put");
-            } else {
-                throw err;
-            }
+        // if field not in entity type
+        if (!fieldSet.has(item.name)) {
+            const metaControlOption = {
+                type_id: item.type_id,
+                name: item.name,
+                required: false,
+            };
+            // add metadata fields to entity type
+            await optixHelper.query("meta-control", metaControlOption, "put");
         }
+        // add metadata
+        await optixHelper.query("metadata", item, "put");
     }
 }
 
