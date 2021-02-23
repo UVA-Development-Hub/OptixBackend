@@ -13,4 +13,5 @@ module.exports = function (app) {
     app.get("/action/timeseries/download", optixTimeQuery.timeseries, downloadFile);
     app.get("/action/metadata", optixTimeQuery.getMetadata);
     app.post("/action/metadata", optixTimeQuery.editMetadata, optixTimeQuery.getMetadata);
+    app.post("/action/entity", optixTimeQuery.createEntity);
 };

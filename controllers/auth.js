@@ -34,6 +34,7 @@ async function getToken(req, res, next) {
                 redirect_uri: process.env.COGNITO_REDIRECT_URI,
             })
         );
+
         res.locals.data = result.data;
         next();
     } catch (err) {
@@ -68,6 +69,7 @@ async function auth(req, res, next) {
 
         //Else API has been authenticated. Proceed.
         res.locals.user = response;
+        console.log(response);
         next();
     });
 }
