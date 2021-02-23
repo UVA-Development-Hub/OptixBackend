@@ -126,6 +126,7 @@ async function addMetadata(metadata) {
     if (!metadata.length) return;
     // make a set of field name of the entity type
     const entity_type_id = metadata[0]["type_id"];
+    // check if entity type has the field
     const result = await optixHelper.query(
         "meta-control",
         { entity_type_id: entity_type_id },
@@ -140,7 +141,7 @@ async function addMetadata(metadata) {
         // if field not in entity type
         if (!fieldSet.has(item.name)) {
             const metaControlOption = {
-                type_id: item.type_id,
+                type_id: item.entity_type_id,
                 name: item.name,
                 required: false,
             };
@@ -180,7 +181,7 @@ async function modifyMetadata(entity_id, entity_type_id, new_metadata) {
         for (const field in originalMetadataResult.data) {
             if (!new_metadata.hasOwnProperty(field)) {
                 metadataToBeDeleted.push({
-                    ent_id: entity_id,
+                    entity_id: entity_id,
                     name: field,
                 });
             }
@@ -250,8 +251,100 @@ async function editMetadata(req, res, next) {
     }
 }
 
+/**
+ * Description:
+ *      create entity
+ *
+ * @typedef {object} showRequestQuery
+ * @property {string} type the entity type name (required).
+ * @property {string} metric metric name (required)
+ *
+ * @param {express.Request} req request
+ * @param {express.Response} res response
+ * @param {express.NextFunction} next next function
+ */
+async function createEntity(req, res, next) {
+    const type = req.body.type;
+    const metric = req.body.metric;
+    // check if entity type exists
+    try {
+        let result = undefined;
+        try {
+            result = await optixHelper.query("entity-types", { type: type }, "get");
+        } catch (err) {
+            if (
+                err.response &&
+                err.response.data &&
+                err.response.data.message &&
+                err.response.data.message === "this query has no results"
+            ) {
+                // entity type does not exist
+                // create one
+                result = await optixHelper.query(
+                    "entity-types",
+                    {
+                        type: type,
+                        meta_control: JSON.stringify({ location: false }),
+                        time_series_control: JSON.stringify(["metric"]),
+                    },
+                    "put"
+                );
+            } else {
+                throw err;
+            }
+        }
+        let entity_type_id = undefined;
+        if (result.data.results) {
+            entity_type_id = result.data.results[0].entity_type_id;
+        } else {
+            entity_type_id = result.data.ID;
+        }
+
+        // create entity id
+        result = await query(
+            "entity",
+            {
+                type_id: entity_type_id,
+                time_series_link: [["metric", metric]],
+            },
+            "put"
+        );
+        const entity_id = result.data.ID;
+        // return data to json
+        res.status(200).json({
+            status: "success",
+            data: {
+                entity_id: entity_id,
+                entity_type_id: entity_type_id,
+            },
+        });
+    } catch (err) {
+        if (err.response && err.response.status && err.response.data) {
+            const errorData = err.response.data;
+            if (
+                errorData.hasOwnProperty("error") &&
+                errorData.hasOwnProperty("message")
+            ) {
+                next(
+                    createError(
+                        err.response.status,
+                        errorData.message + " " + errorData.error
+                    )
+                );
+            } else if (errorData.hasOwnProperty("error")) {
+                next(createError(err.response.status, errorData.error));
+            } else {
+                next(createError(err.response.status, errorData.message));
+            }
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
 module.exports = {
     timeseries: timeseries,
     getMetadata: getMetadata,
     editMetadata: editMetadata,
+    createEntity: createEntity,
 };
