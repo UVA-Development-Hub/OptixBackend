@@ -301,23 +301,20 @@ async function createEntity(req, res, next) {
         }
 
         // create entity id
-        result = await query(
+        result = await optixHelper.query(
             "entity",
             {
                 type_id: entity_type_id,
-                time_series_link: [["metric", metric]],
+                time_series_link: JSON.stringify([["metric", metric]]),
             },
             "put"
         );
         const entity_id = result.data.ID;
-        // return data to json
-        res.status(200).json({
-            status: "success",
-            data: {
-                entity_id: entity_id,
-                entity_type_id: entity_type_id,
-            },
-        });
+        res.locals.data = {
+            entity_id: entity_id,
+            entity_type_id: entity_type_id,
+        };
+        next();
     } catch (err) {
         if (err.response && err.response.status && err.response.data) {
             const errorData = err.response.data;
