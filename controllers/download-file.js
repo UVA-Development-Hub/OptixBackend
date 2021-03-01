@@ -8,6 +8,7 @@ function saveData(data, metric, start_time, end_time) {
         end_time = end_time.replace(/\//g, "-");
         filename += `_${end_time}`;
     }
+    filename += ".json";
     const filePath = path.normalize(__dirname + `/../public/downloads/${filename}`);
     if (fs.pathExistsSync(filePath)) {
         fs.removeSync(filePath);
