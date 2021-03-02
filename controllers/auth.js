@@ -20,6 +20,17 @@ const cognitoAgent = axios.create({
     },
 });
 
+/**
+ * Description:
+ *      get tokens from cognito using authorization code.
+ *
+ * @typedef {object} showRequestQuery
+ * @property {string} code cognito authorization code (required).
+ *
+ * @param {express.Request} req request
+ * @param {express.Response} res response
+ * @param {express.NextFunction} next next function
+ */
 async function getToken(req, res, next) {
     const code = req.query.code;
     try {
@@ -51,6 +62,17 @@ async function getToken(req, res, next) {
     }
 }
 
+/**
+ * Description:
+ *      authenticate the token. send the token to cognito to get user info. token will be
+ *      in req.headers (user query) or res.locals.data (login, sign up)
+ * @typedef {object} showRequestHeader||showResponseLocalsData
+ * @property {string} access_token cognito access token (required).
+ *
+ * @param {express.Request} req request
+ * @param {express.Response} res response
+ * @param {express.NextFunction} next next function
+ */
 async function auth(req, res, next) {
     // get access token
     let accessTokenFromClient = undefined;

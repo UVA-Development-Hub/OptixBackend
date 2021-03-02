@@ -1,6 +1,19 @@
 const { query } = require("../utils/optix-time-query-utils");
 const { getUserId, createUser, getDatasetByUser } = require("./user-db-query");
 
+/**
+ * Description:
+ *      use user subject to get dataset ids (entity_type_id and entity_typ) and return the
+ *      first data
+ *      if it is newly user, it will insert the subject to user_db
+ *
+ * @typedef {object} showResponseLocalsData
+ * @property {string} subject user subject uuid
+ *
+ * @param {express.Request} req request
+ * @param {express.Response} res response
+ * @param {express.NextFunction} next next function
+ */
 async function initialize(req, res, next) {
     // get user subject id
     const subject = res.locals.user.subject;
