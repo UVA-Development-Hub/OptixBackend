@@ -52,22 +52,33 @@ async function getToken(req, res, next) {
 }
 
 async function auth(req, res, next) {
-    let accessTokenFromClient = res.locals.data.access_token;
+    // get access token
+    let accessTokenFromClient = undefined;
+    if (req.headers.accesstoken) {
+        // from header
+        // user query
+        accessTokenFromClient = req.headers.access_token;
+    } else if (res.locals.data.access_token) {
+        // from locals
+        // login or sign up
+        accessTokenFromClient = res.locals.data.access_token;
+    }
 
-    // Fail if token not present in header.
+    // Fail if token not present eithrt in header or locals.
     if (!accessTokenFromClient) {
-        next(createError(401, "Access Token missing."));
+        next(createError(401, "Access token missing."));
         return;
     }
 
     cognitoExpress.validate(accessTokenFromClient, function (err, response) {
-        // If API is not authenticated, Return 401 with error message.
+        // user is not authenticated, return 401 with error message.
         if (err) {
             next(createError(401, err));
             return;
         }
 
-        //Else API has been authenticated. Proceed.
+        // user has been authenticated.
+        // store in locals
         res.locals.user = response;
         console.log(response);
         next();

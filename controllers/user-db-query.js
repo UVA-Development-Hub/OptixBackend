@@ -45,6 +45,10 @@ async function getGroupId(name) {
 
 async function getUserId(subject) {
     const { rows } = await db.query("SELECT id FROM users WHERE subject = $1", [subject]);
+    // if subject not in user_db (sign up)
+    if (rows.length === 0) {
+        return null;
+    }
     return rows[0].id;
 }
 
@@ -91,6 +95,8 @@ module.exports = {
     addUserToGroup: addUserToGroup,
     addDataset: addDataset,
     addDatasetToGroup: addDatasetToGroup,
+    getGroupId: getGroupId,
+    getUserId: getUserId,
     getDatasetByGroup: getDatasetByGroup,
     getGroupsByUser: getGroupsByUser,
     getDatasetByUser: getDatasetByUser,
