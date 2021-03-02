@@ -76,6 +76,15 @@ async function getGroupsByUser(subject) {
     return rows;
 }
 
+async function getDatasetByUser(subject) {
+    const groups = await getGroupsByUser(subject);
+    const datasets = [];
+    for (const group of groups) {
+        datasets = datasets.concat(await getDatasetByGroup(group.name));
+    }
+    return datasets;
+}
+
 module.exports = {
     createGroup: createGroup,
     createUser: createUser,
@@ -84,4 +93,5 @@ module.exports = {
     addDatasetToGroup: addDatasetToGroup,
     getDatasetByGroup: getDatasetByGroup,
     getGroupsByUser: getGroupsByUser,
+    getDatasetByUser: getDatasetByUser,
 };
