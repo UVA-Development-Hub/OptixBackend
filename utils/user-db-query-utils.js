@@ -1,28 +1,22 @@
 const db = require("../db");
 
 async function createGroup(name) {
-    const { rows } = await db.query("INSERT INTO groups(name) VALUES($1)", [name]);
-    return rows[0].id;
+    await db.query("INSERT INTO groups(name) VALUES($1)", [name]);
 }
 
 async function createUser(subject) {
-    const { rows } = await db.query("INSERT INTO users(subject) VALUES($1)", [subject]);
-    return rows[0].id;
+    await db.query("INSERT INTO users(subject) VALUES($1)", [subject]);
 }
 
 async function addUserToGroup(user_id, group_id) {
-    const {
-        rows,
-    } = await db.query("INSERT INTO user_group(user_id, group_id) VALUES($1, $2)", [
+    await db.query("INSERT INTO user_group(user_id, group_id) VALUES($1, $2)", [
         user_id,
         group_id,
     ]);
 }
 
 async function addDataset(entity_id, entity_type_id) {
-    const {
-        rows,
-    } = await db.query("INSERT INTO datasets(entity_id, entity_type_id) VALUES($1, $2)", [
+    db.query("INSERT INTO datasets(entity_id, entity_type_id) VALUES($1, $2)", [
         entity_id,
         entity_type_id,
     ]);
@@ -30,9 +24,7 @@ async function addDataset(entity_id, entity_type_id) {
 }
 
 async function addDatasetToGroup(group_id, dataset_id) {
-    const {
-        rows,
-    } = await db.query("INSERT INTO group_dataset(group_id, dataset_id) VALUES($1, $2)", [
+    db.query("INSERT INTO group_dataset(group_id, dataset_id) VALUES($1, $2)", [
         group_id,
         dataset_id,
     ]);
@@ -87,6 +79,14 @@ async function getDatasetByUser(subject) {
         datasets = datasets.concat(await getDatasetByGroup(group.name));
     }
     return datasets;
+}
+
+async function getDataset() {
+    const { rows } = await db.query(
+        `SELECT * 
+         FROM datasets`
+    );
+    return rows;
 }
 
 module.exports = {

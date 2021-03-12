@@ -1,5 +1,10 @@
 const { query } = require("../utils/optix-time-query-utils");
-const { getUserId, createUser, getDatasetByUser } = require("./user-db-query");
+const createError = require("http-errors");
+const {
+    getUserId,
+    createUser,
+    getDatasetByUser,
+} = require("../utils/user-db-query-utils");
 
 /**
  * Description:
@@ -16,27 +21,30 @@ const { getUserId, createUser, getDatasetByUser } = require("./user-db-query");
  */
 async function initialize(req, res, next) {
     // get user subject id
-    const subject = res.locals.user.subject;
+    const subject = res.locals.user.sub;
     try {
         // use subject to check if the user is existed (login) or not (sign up)
         let id = await getUserId(subject);
         if (!id) {
-            id = await createUser(subject);
+            await createUser(subject);
+            id = await getUserId(subject);
         }
+
         // get array of entity_id and entity_type_id
         const datasetIds = getDatasetByUser(subject);
-
-        // return first dataset
-        const entity_id = datasetIds[0].entity_id;
-        const options = {
-            entity_id: entity_id,
-            include_metadata: true,
-            include_time_series: true,
-            start_time: "1h-ago",
-        };
-        const result = await query("entity", options, "get");
-        const data = result.data.results[0]["timeseries"]["dps"];
-
+        let data = {};
+        if (datasetIds.length) {
+            // return first dataset
+            const entity_id = datasetIds[0].entity_id;
+            const options = {
+                entity_id: entity_id,
+                include_metadata: true,
+                include_time_series: true,
+                start_time: "1h-ago",
+            };
+            const result = await query("entity", options, "get");
+            data = result.data.results[0]["timeseries"]["dps"];
+        }
         res.status(200).json({
             status: "success",
             data: data,
