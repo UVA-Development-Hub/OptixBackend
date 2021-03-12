@@ -20,7 +20,6 @@ async function addDataset(entity_id, entity_type_id) {
         entity_id,
         entity_type_id,
     ]);
-    return rows[0].id;
 }
 
 async function addDatasetToGroup(group_id, dataset_id) {
@@ -32,6 +31,9 @@ async function addDatasetToGroup(group_id, dataset_id) {
 
 async function getGroupId(name) {
     const { rows } = await db.query("SELECT id FROM groups WHERE name = $1", [name]);
+    if (rows.length === 0) {
+        return null;
+    }
     return rows[0].id;
 }
 
