@@ -46,6 +46,20 @@ async function getUserId(subject) {
     return rows[0].id;
 }
 
+async function getDatasetId(entity_type_id, entity_id) {
+    const {
+        rows,
+    } = await db.query(
+        "SELECT id FROM users WHERE entity_type_id = $1 AND entity_type = $2",
+        [entity_type_id, entity_id]
+    );
+    // if subject not in user_db (sign up)
+    if (rows.length === 0) {
+        return null;
+    }
+    return rows[0].id;
+}
+
 async function getDatasetByGroup(name) {
     const { rows } = await db.query(
         `SELECT ds.entity_id, ds.entity_type_id 
@@ -91,6 +105,32 @@ async function getDataset() {
     return rows;
 }
 
+async function isUserInGroup(userId, group_id) {
+    const {
+        rows,
+    } = await db.query(`SELECT * FROM user_group WHERE user_id = $1 AND group_id = $2`, [
+        userId,
+        group_id,
+    ]);
+    if (rows.length === 0) {
+        return false;
+    }
+    return true;
+}
+
+async function isDatasetInGroup(group_id, dataset_id) {
+    const {
+        rows,
+    } = await db.query(
+        `SELECT * FROM group_dataset WHERE group_id = $1 AND dataset_id = $2`,
+        [group_id, dataset_id]
+    );
+    if (rows.length === 0) {
+        return false;
+    }
+    return true;
+}
+
 module.exports = {
     createGroup: createGroup,
     createUser: createUser,
@@ -99,7 +139,10 @@ module.exports = {
     addDatasetToGroup: addDatasetToGroup,
     getGroupId: getGroupId,
     getUserId: getUserId,
+    getDatasetId: getDatasetId,
     getDatasetByGroup: getDatasetByGroup,
     getGroupsByUser: getGroupsByUser,
     getDatasetByUser: getDatasetByUser,
+    isUserInGroup: isUserInGroup,
+    isDatasetInGroup: isDatasetInGroup,
 };
