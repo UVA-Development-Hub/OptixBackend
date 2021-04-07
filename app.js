@@ -3,7 +3,7 @@ const HTTPStatuses = require("statuses");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
-const routes = require("./routes");
+const api = require("./api");
 require("dotenv").config();
 const app = express();
 
@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-routes(app);
+api(app);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
