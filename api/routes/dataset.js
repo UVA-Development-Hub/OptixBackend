@@ -1,4 +1,4 @@
-const express = require("express");
+const authMiddleware = require("../middleware/auth");
 const optixHelper = require("../../services/optix");
 const datasetHelper = require("../../services/dataset");
 const createError = require("http-errors");
@@ -95,6 +95,7 @@ async function search(req, res, next) {
 }
 
 module.exports = (app) => {
+    app.use("/dataset", authMiddleware.authenticate);
     app.get("/dataset", getDataset);
     app.get("/dataset/download", getDataset, download);
     app.get("/dataset/search-metrics", search);

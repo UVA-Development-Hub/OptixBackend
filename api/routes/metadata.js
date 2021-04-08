@@ -1,6 +1,6 @@
-const express = require("express");
 const metadataHelper = require("../../services/metadata");
 const optixHelper = require("../../services/optix");
+const authMiddleware = require("../middleware/auth");
 const createError = require("http-errors");
 
 /**
@@ -127,10 +127,8 @@ async function createEntity(req, res, next) {
     }
 }
 
-const route = express.Router();
-
 module.exports = (app) => {
-    // app.use("/metadata", route);
+    app.use("/metadata", authMiddleware.authenticate);
     app.get("/metadata", getMetadata);
     app.put("/metadata", createEntity, getMetadata);
     app.post("/metadata", editMetadata, getMetadata);
