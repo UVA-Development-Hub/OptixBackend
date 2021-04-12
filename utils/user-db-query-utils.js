@@ -1,15 +1,15 @@
 const db = require("../db");
 
 async function createGroup(name) {
-    await db.query("INSERT INTO groups(name) VALUES($1)", [name]);
+    return await db.query("INSERT INTO groups(name) VALUES($1)", [name]);
 }
 
 async function createUser(subject) {
-    await db.query("INSERT INTO users(subject) VALUES($1)", [subject]);
+    return await db.query("INSERT INTO users(subject) VALUES($1)", [subject]);
 }
 
 async function addUserToGroup(user_id, group_id) {
-    await db.query("INSERT INTO user_group(user_id, group_id) VALUES($1, $2)", [
+    return await db.query("INSERT INTO user_group(user_id, group_id) VALUES($1, $2)", [
         user_id,
         group_id,
     ]);
@@ -131,6 +131,15 @@ async function isDatasetInGroup(group_id, dataset_id) {
     return true;
 }
 
+async function hasGroup(name) {
+    const { rows } = await db.query(`SELECT * FROM groups WHERE name = $1`, [name]);
+    console.log(rows.length);
+    if (rows.length === 0) {
+        return false;
+    }
+    return true;
+}
+
 module.exports = {
     createGroup: createGroup,
     createUser: createUser,
@@ -145,4 +154,5 @@ module.exports = {
     getDatasetByUser: getDatasetByUser,
     isUserInGroup: isUserInGroup,
     isDatasetInGroup: isDatasetInGroup,
+    hasGroup: hasGroup,
 };
