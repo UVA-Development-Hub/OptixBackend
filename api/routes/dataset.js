@@ -94,9 +94,35 @@ async function search(req, res, next) {
     }
 }
 
+async function createDataset(req, res, next) {
+    try {
+        const prefix = req.body.prefix;
+        const sensors = req.body.sensors;
+        const sensorType = req.body.sensor_type;
+        const metadata = req.body.metadata || {};
+        const group = req.body.group;
+        await datasetHelper.createDataset(prefix, sensors, sensorType, metadata, group);
+        res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
 module.exports = (app) => {
     app.use("/dataset", authMiddleware.authenticate);
     app.get("/dataset", getDataset);
+    app.put("/dataset", createDataset);
     app.get("/dataset/download", getDataset, download);
     app.get("/dataset/search-metrics", search);
 };

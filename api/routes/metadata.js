@@ -84,7 +84,7 @@ async function editMetadata(req, res, next) {
  *
  * @typedef {object} showRequestQuery
  * @property {string} type the entity type name (required).
- * @property {string} metric metric name (required)
+ * @property {string[]} metrics an array of metric name (required)
  * @property {object} metadata json of the metadata
  *
  * @param {express.Request} req request
@@ -95,9 +95,9 @@ async function createEntity(req, res, next) {
     // check if entity type exists
     try {
         const type = req.body.type;
-        const metric = req.body.metric;
+        const metrics = req.body.metrics;
         const metadata = req.body.metadata;
-        const result = await metadataHelper.create(type, metric, metadata);
+        const result = await metadataHelper.create(type, metrics, metadata);
         const entity_id = result.entity_id;
 
         // add entity id in query for getMetadata

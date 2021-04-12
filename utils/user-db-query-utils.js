@@ -15,11 +15,12 @@ async function addUserToGroup(user_id, group_id) {
     ]);
 }
 
-async function addDataset(entity_id, entity_type_id) {
-    db.query("INSERT INTO datasets(entity_id, entity_type_id) VALUES($1, $2)", [
-        entity_id,
-        entity_type_id,
-    ]);
+async function addDataset(entity_id, entity_type_id, prefix, sensor_type) {
+    await db.query(
+        "INSERT INTO datasets(entity_id, entity_type_id, prefix, sensor_type) VALUES($1, $2, $3, $4)",
+        [entity_id, entity_type_id, prefix, sensor_type]
+    );
+    return await getDatasetId(entity_type_id, entity_id);
 }
 
 async function addDatasetToGroup(group_id, dataset_id) {
@@ -50,7 +51,7 @@ async function getDatasetId(entity_type_id, entity_id) {
     const {
         rows,
     } = await db.query(
-        "SELECT id FROM users WHERE entity_type_id = $1 AND entity_type = $2",
+        "SELECT id FROM datasets WHERE entity_type_id = $1 AND entity_id = $2",
         [entity_type_id, entity_id]
     );
     // if subject not in user_db (sign up)

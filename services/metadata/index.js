@@ -131,7 +131,7 @@ async function modifyMetadata(entity_id, entity_type_id, new_metadata) {
     }
 }
 
-async function createEntity(type, metric, metadata) {
+async function createEntity(type, metrics, metadata) {
     let result = undefined;
     try {
         result = await optixHelper.query("entity-types", { type: type }, "get");
@@ -163,14 +163,14 @@ async function createEntity(type, metric, metadata) {
     } else {
         entity_type_id = result.data.ID;
     }
-
+    const metricNames = metrics.map((metric) => ["metric", metric]);
     // create entity id
     result = await optixHelper.query(
         "entity",
         {
             type_id: entity_type_id,
             metadata: JSON.stringify(metadata),
-            time_series_link: JSON.stringify([["metric", metric]]),
+            time_series_link: JSON.stringify(metricNames),
         },
         "put"
     );

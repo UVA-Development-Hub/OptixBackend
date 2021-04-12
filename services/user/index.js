@@ -1,4 +1,3 @@
-const db = require("../../db");
 const dbHelper = require("../../utils/user-db-query-utils");
 
 async function createGroup(group) {
@@ -19,7 +18,18 @@ async function addUserToGroup(subject, group) {
     return true;
 }
 
+async function addDatasetToGroup(datasetIds, group) {
+    const groupId = await dbHelper.getGroupId(group);
+    if (!groupId) {
+        throw "group does not exist.";
+    }
+    for (const datasetId of datasetIds) {
+        await dbHelper.addDatasetToGroup(groupId, datasetId);
+    }
+}
+
 module.exports = {
     createGroup: createGroup,
     addUserToGroup: addUserToGroup,
+    addDatasetToGroup: addDatasetToGroup,
 };
