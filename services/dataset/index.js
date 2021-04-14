@@ -27,18 +27,18 @@ function download(data, metric, start_time, end_time) {
     return filePath;
 }
 
-async function createDataset(prefix, sensors, sensorType, metadata, group) {
+async function createDataset(dataset, sensors, sensorType, metadata, group) {
     // set up metric name
     // check if metric exists
     let options = {
         t: "metrics",
-        q: prefix,
+        q: dataset,
     };
     let result = await optixHelper.query("search", options, "get");
     if (result.data.length != 0) {
         throw "metric already exists.";
     }
-    const metrics = sensors.map((sensor) => `${prefix}.${sensor}`);
+    const metrics = sensors.map((sensor) => `${dataset}.${sensor}`);
     // add metric name in opentsdb
     for (const metricName of metrics) {
         options = {
@@ -56,14 +56,14 @@ async function createDataset(prefix, sensors, sensorType, metadata, group) {
     const datasetId = await dbHelper.addDataset(
         entity_id,
         entity_type_id,
-        prefix,
+        dataset,
         sensorType
     );
-    if (datasetId == null) {
+    if (!datasetId) {
         throw "failed to create dataset.";
     }
     // add dataset to group in db
-    await userHelper.addDatasetToGroup([datasetId], group);
+    await userHelper.addDatasetsToGroup([dataset], group);
 }
 
 module.exports = {

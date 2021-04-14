@@ -96,12 +96,12 @@ async function search(req, res, next) {
 
 async function createDataset(req, res, next) {
     try {
-        const prefix = req.body.prefix;
+        const dataset = req.body.dataset;
         const sensors = req.body.sensors;
         const sensorType = req.body.sensor_type;
         const metadata = req.body.metadata || {};
         const group = req.body.group;
-        await datasetHelper.createDataset(prefix, sensors, sensorType, metadata, group);
+        await datasetHelper.createDataset(dataset, sensors, sensorType, metadata, group);
         res.status(200).json({
             status: "success",
         });

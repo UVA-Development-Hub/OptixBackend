@@ -16,11 +16,15 @@ async function addUserToGroup(user_id, group_id) {
 }
 
 async function addDataset(entity_id, entity_type_id, prefix, sensor_type) {
+    const id = await getDatasetIdByEntity(entity_type_id, entity_id);
+    if (id) {
+        return null;
+    }
     await db.query(
         "INSERT INTO datasets(entity_id, entity_type_id, prefix, sensor_type) VALUES($1, $2, $3, $4)",
         [entity_id, entity_type_id, prefix, sensor_type]
     );
-    return await getDatasetId(entity_type_id, entity_id);
+    return await getDatasetIdByEntity(entity_type_id, entity_id);
 }
 
 async function addDatasetToGroup(group_id, dataset_id) {
@@ -47,14 +51,23 @@ async function getUserId(subject) {
     return rows[0].id;
 }
 
-async function getDatasetId(entity_type_id, entity_id) {
+async function getDatasetIdByName(name) {
+    const { rows } = await db.query("SELECT id FROM datasets WHERE name = $1", [name]);
+    // dataset not found
+    if (rows.length === 0) {
+        return null;
+    }
+    return rows[0].id;
+}
+
+async function getDatasetIdByEntity(entity_type_id, entity_id) {
     const {
         rows,
     } = await db.query(
         "SELECT id FROM datasets WHERE entity_type_id = $1 AND entity_id = $2",
         [entity_type_id, entity_id]
     );
-    // if subject not in user_db (sign up)
+    // dataset not found
     if (rows.length === 0) {
         return null;
     }
@@ -149,7 +162,8 @@ module.exports = {
     addDatasetToGroup: addDatasetToGroup,
     getGroupId: getGroupId,
     getUserId: getUserId,
-    getDatasetId: getDatasetId,
+    getDatasetIdByEntity: getDatasetIdByEntity,
+    getDatasetIdByName: getDatasetIdByName,
     getDatasetByGroup: getDatasetByGroup,
     getGroupsByUser: getGroupsByUser,
     getDatasetByUser: getDatasetByUser,

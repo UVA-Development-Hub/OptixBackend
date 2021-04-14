@@ -18,12 +18,17 @@ async function addUserToGroup(subject, group) {
     return true;
 }
 
-async function addDatasetToGroup(datasetIds, group) {
+async function addDatasetsToGroup(datasets, group) {
     const groupId = await dbHelper.getGroupId(group);
     if (!groupId) {
         throw "group does not exist.";
     }
-    for (const datasetId of datasetIds) {
+    for (const dataset of datasets) {
+        const datasetId = await dbHelper.getDatasetIdByName(dataset);
+        if (await dbHelper.isDatasetInGroup(groupId, datasetId)) {
+            // dataset already exists
+            continue;
+        }
         await dbHelper.addDatasetToGroup(groupId, datasetId);
     }
 }
@@ -31,5 +36,5 @@ async function addDatasetToGroup(datasetIds, group) {
 module.exports = {
     createGroup: createGroup,
     addUserToGroup: addUserToGroup,
-    addDatasetToGroup: addDatasetToGroup,
+    addDatasetsToGroup: addDatasetsToGroup,
 };
