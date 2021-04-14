@@ -33,5 +33,4 @@ async function login(req, res, next) {
 
 module.exports = (app) => {
     app.get("/auth/login", login);
-    // app.get("/auth/logout", logout);
 };

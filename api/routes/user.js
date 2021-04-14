@@ -28,12 +28,9 @@ async function createGroup(req, res, next) {
 
 async function addUserToGroup(req, res, next) {
     try {
-        const subject = req.body.subject;
+        const subjects = req.body.subjects;
         const group = req.body.group;
-        if (!(await userHelper.addUserToGroup(subject, group))) {
-            next(createError(400, "Already in group."));
-            return;
-        }
+        await userHelper.addUserToGroup(subjects, group);
         res.status(200).json({
             status: "success",
             message: `Add succecssfully!`,

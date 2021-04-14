@@ -8,13 +8,23 @@ async function createGroup(group) {
     return true;
 }
 
-async function addUserToGroup(subject, group) {
-    const userId = await dbHelper.getUserId(subject);
+async function addUserToGroup(subjects, group) {
     const groupId = await dbHelper.getGroupId(group);
-    if (!userId || !groupId || (await dbHelper.isUserInGroup(userId, groupId))) {
-        return false;
+    if (!groupId) {
+        throw "group not found.";
     }
-    await dbHelper.addUserToGroup(userId, groupId);
+    for (const subject of subjects) {
+        const userId = await dbHelper.getUserId(subject);
+        if (!userId) {
+            // user id not found
+            continue;
+        }
+        if (await dbHelper.isUserInGroup(userId, groupId)) {
+            // user already in group
+            continue;
+        }
+        await dbHelper.addUserToGroup(userId, groupId);
+    }
     return true;
 }
 
