@@ -15,14 +15,14 @@ async function addUserToGroup(user_id, group_id) {
     ]);
 }
 
-async function addDataset(entity_id, entity_type_id, prefix, sensor_type) {
+async function addDataset(entity_id, entity_type_id, name, sensor_type) {
     const id = await getDatasetIdByEntity(entity_type_id, entity_id);
     if (id) {
         return null;
     }
     await db.query(
-        "INSERT INTO datasets(entity_id, entity_type_id, prefix, sensor_type) VALUES($1, $2, $3, $4)",
-        [entity_id, entity_type_id, prefix, sensor_type]
+        "INSERT INTO datasets(entity_id, entity_type_id, name, sensor_type) VALUES($1, $2, $3, $4)",
+        [entity_id, entity_type_id, name, sensor_type]
     );
     return await getDatasetIdByEntity(entity_type_id, entity_id);
 }
