@@ -11,31 +11,44 @@ const openTSDBAgent = axios.create({
     timeout: process.env.TIMEOUT || 0,
 });
 
-function download(data, metric, start_time, end_time) {
-    start_time = start_time.replace(/\//g, "-");
-    let filename = `${metric}_${start_time}`;
-    if (end_time) {
-        end_time = end_time.replace(/\//g, "-");
-        filename += `_${end_time}`;
+async function getDataset(metric, startTime, endTime, tags) {
+    const result = await optixHelper.query(
+        "timeseries",
+        {
+            metric: metric,
+            start_time: startTime,
+            end_time: endTime,
+            tags: tags,
+        },
+        "get"
+    );
+    return result.data;
+}
+
+async function download(metric, startTime, endTime) {
+    const data = await getDataset(metric, startTime, endTime);
+    startTime = startTime.replace(/\//g, "-");
+    let filename = `${metric}_${startTime}`;
+    if (endTime) {
+        endTime = endTime.replace(/\//g, "-");
+        filename += `_${endTime}`;
     }
+
     filename += ".json";
-    const filePath = path.normalize(__dirname + `/../public/downloads/${filename}`);
-    if (fs.pathExistsSync(filePath)) {
-        fs.removeSync(filePath);
+    const filePath = path.normalize(__dirname + `/../../public/downloads/${filename}`);
+
+    if (await fs.pathExists(filePath)) {
+        await fs.remove(filePath);
     }
-    fs.outputJsonSync(filePath, data);
+    await fs.outputJson(filePath, data);
     return filePath;
 }
 
 async function createDataset(dataset, sensors, sensorType, metadata, group) {
     // set up metric name
     // check if metric exists
-    let options = {
-        t: "metrics",
-        q: dataset,
-    };
-    let result = await optixHelper.query("search", options, "get");
-    if (result.data.length != 0) {
+    let result = await search(dataset);
+    if (result.length != 0) {
         throw "metric already exists.";
     }
     const metrics = sensors.map((sensor) => `${dataset}.${sensor}`);
@@ -66,7 +79,19 @@ async function createDataset(dataset, sensors, sensorType, metadata, group) {
     await userHelper.addDatasetsToGroup([dataset], group);
 }
 
+async function search(dataset, max) {
+    let options = {
+        t: "metrics",
+        q: dataset,
+        max: max,
+    };
+    let result = await optixHelper.query("search", options, "get");
+    return result.data;
+}
+
 module.exports = {
+    getDataset: getDataset,
     download: download,
     createDataset: createDataset,
+    search: search,
 };

@@ -1,5 +1,4 @@
 const authMiddleware = require("../middleware/auth");
-const optixHelper = require("../../services/optix");
 const datasetHelper = require("../../services/dataset");
 const createError = require("http-errors");
 
@@ -19,20 +18,15 @@ const createError = require("http-errors");
  */
 async function getDataset(req, res, next) {
     try {
-        const endpoint = "timeseries";
-        const options = req.query;
-        const result = await optixHelper.query(endpoint, options, "get");
-        if (req.originalUrl.includes("download")) {
-            // return data to next for download
-            res.locals.data = result.data;
-            next();
-        } else {
-            // return data to json
-            res.status(200).json({
-                status: "success",
-                data: result.data,
-            });
-        }
+        const metric = req.query.metric;
+        const startTime = req.query.start_time;
+        const endTime = req.query.end_time;
+        const tags = req.query.tags;
+        const dataset = await datasetHelper.getDataset(metric, startTime, endTime, tags);
+        res.status(200).json({
+            status: "success",
+            data: dataset,
+        });
     } catch (err) {
         if (
             err.response &&
@@ -47,14 +41,13 @@ async function getDataset(req, res, next) {
     }
 }
 
-async function download(req, res) {
+async function download(req, res, next) {
     try {
         const start_time = req.query.start_time;
         const end_time = req.query.end_time;
         const metric = req.query.metric;
-        const data = res.locals.data;
 
-        const filePath = datasetHelper.download(data, metric, start_time, end_time);
+        const filePath = await datasetHelper.download(metric, start_time, end_time);
 
         res.download(filePath);
     } catch (err) {
@@ -73,12 +66,12 @@ async function download(req, res) {
 
 async function search(req, res, next) {
     try {
-        const endpoint = "search";
-        const options = req.query;
-        const result = await optixHelper.query(endpoint, options, "get");
+        const dataset = req.query.dataset;
+        const max = req.query.max;
+        const result = await datasetHelper.search(dataset, max);
         res.status(200).json({
             status: "success",
-            data: result.data,
+            data: result,
         });
     } catch (err) {
         if (
@@ -123,6 +116,6 @@ module.exports = (app) => {
     app.use("/dataset", authMiddleware.authenticate);
     app.get("/dataset", getDataset);
     app.put("/dataset", createDataset);
-    app.get("/dataset/download", getDataset, download);
-    app.get("/dataset/search-metrics", search);
+    app.get("/dataset/download", download);
+    app.get("/dataset/search", search);
 };
