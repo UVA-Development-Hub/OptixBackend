@@ -1,4 +1,26 @@
 const optixHelper = require("../optix");
+const dbHelper = require("../../utils/user-db-query-utils");
+
+async function getEntityByDataset(dataset) {
+    const { entity_type_id, entity_id } = await dbHelper.getDatasetEntityByName(dataset);
+    return {
+        entity_type_id: entity_type_id,
+        entity_id: entity_id,
+    };
+}
+
+async function getMetadata(dataset) {
+    const { entity_id } = await getEntityByDataset(dataset);
+
+    const result = await optixHelper.query(
+        "metadata",
+        {
+            entity_id: entity_id,
+        },
+        "get"
+    );
+    return result.data;
+}
 
 /**
  * Description:
@@ -181,6 +203,7 @@ async function createEntity(type, metrics, metadata) {
 }
 
 module.exports = {
+    get: getMetadata,
     edit: modifyMetadata,
     create: createEntity,
 };

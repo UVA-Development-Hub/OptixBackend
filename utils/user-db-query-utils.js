@@ -147,11 +147,18 @@ async function isDatasetInGroup(group_id, dataset_id) {
 
 async function hasGroup(name) {
     const { rows } = await db.query(`SELECT * FROM groups WHERE name = $1`, [name]);
-    console.log(rows.length);
     if (rows.length === 0) {
         return false;
     }
     return true;
+}
+
+async function getDatasetEntityByName(name) {
+    const { rows } = await db.query(`SELECT * FROM datasets WHERE name = $1`, [name]);
+    if (rows.length === 0) {
+        return false;
+    }
+    return rows[0];
 }
 
 module.exports = {
@@ -165,6 +172,7 @@ module.exports = {
     getDatasetIdByEntity: getDatasetIdByEntity,
     getDatasetIdByName: getDatasetIdByName,
     getDatasetByGroup: getDatasetByGroup,
+    getDatasetEntityByName: getDatasetEntityByName,
     getGroupsByUser: getGroupsByUser,
     getDatasetByUser: getDatasetByUser,
     isUserInGroup: isUserInGroup,

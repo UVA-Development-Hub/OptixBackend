@@ -1,5 +1,4 @@
 const metadataHelper = require("../../services/metadata");
-const optixHelper = require("../../services/optix");
 const authMiddleware = require("../middleware/auth");
 const createError = require("http-errors");
 
@@ -8,9 +7,7 @@ const createError = require("http-errors");
  *      get metadata
  *
  * @typedef {object} showRequestQuery
- * @property {string} entity_id the entity which metadata is being added (required).
- * @property {string} fields metadata fields you want returned. use semicolon separated
- *                           list of metadata field names. (optional)
+ * @property {string} dataset dataset name (required).
  *
  * @param {express.Request} req request
  * @param {express.Response} res response
@@ -18,13 +15,11 @@ const createError = require("http-errors");
  */
 async function getMetadata(req, res, next) {
     try {
-        const endpoint = "metadata";
-        const options = req.query;
-        const result = await optixHelper.query(endpoint, options, "get");
-
+        const dataset = req.query.dataset;
+        const metadata = await metadataHelper.get(dataset);
         res.status(200).json({
             status: "success",
-            data: result.data,
+            data: metadata,
         });
     } catch (err) {
         if (
