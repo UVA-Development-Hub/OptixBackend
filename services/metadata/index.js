@@ -9,9 +9,11 @@ async function getEntityByDataset(dataset) {
     };
 }
 
-async function getMetadata(dataset) {
-    const { entity_id } = await getEntityByDataset(dataset);
-
+async function getMetadata(dataset, entity_id) {
+    if (!entity_id) {
+        const entity = await getEntityByDataset(dataset);
+        entity_id = entity.entity_id;
+    }
     const result = await optixHelper.query(
         "metadata",
         {
@@ -97,12 +99,11 @@ async function addMetadata(metadata) {
  * Description:
  *      update metadata
  *
- * @param {string} entity_id the entity id which metadata is being edited (required).
- * @param {string} entity_type_id the entity type id which metadata is being edited.
- *                                only for delete field. (optional)
+ * @param {string} dataset
  * @param {object} new_metadata (required).
  */
-async function modifyMetadata(entity_id, entity_type_id, new_metadata) {
+async function modifyMetadata(dataset, new_metadata) {
+    const { entity_type_id, entity_id } = await getEntityByDataset(dataset);
     const metadataToBeUpdated = [];
     const metadataToBeDeleted = [];
     const metadataToBeAdded = [];
@@ -150,6 +151,7 @@ async function modifyMetadata(entity_id, entity_type_id, new_metadata) {
         }
         await updateMetadata(metadataToBeUpdated);
         await addMetadata(metadataToBeAdded);
+        return getMetadata(dataset, entity_id);
     }
 }
 

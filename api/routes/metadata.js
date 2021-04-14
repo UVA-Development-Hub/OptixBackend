@@ -40,9 +40,7 @@ async function getMetadata(req, res, next) {
  *      editMetadata middleware
  *
  * @typedef {object} showRequestQuery
- * @property {string} entity_id the entity id which metadata is being edited (required).
- * @property {string} entity_type_id the entity type id which metadata is being edited.
- *                                   only for delete field. (optional)
+ * @property {string} dataset (required).
  * @property {object} new_metadata (required).
  *
  * @param {express.Request} req request
@@ -50,15 +48,14 @@ async function getMetadata(req, res, next) {
  * @param {express.NextFunction} next next function
  */
 async function editMetadata(req, res, next) {
-    const entity_id = req.body.entity_id;
-    const entity_type_id = req.body.entity_type_id;
+    const dataset = req.body.dataset;
     const new_metadata = req.body.new_metadata;
     try {
-        await metadataHelper.edit(entity_id, entity_type_id, new_metadata);
-
-        // add entity id in query for getMetadata
-        req.query.entity_id = entity_id;
-        next();
+        const metadata = await metadataHelper.edit(dataset, new_metadata);
+        res.status(200).json({
+            status: "success",
+            data: metadata,
+        });
     } catch (err) {
         if (
             err.response &&
@@ -125,6 +122,6 @@ async function createEntity(req, res, next) {
 module.exports = (app) => {
     app.use("/metadata", authMiddleware.authenticate);
     app.get("/metadata", getMetadata);
-    app.put("/metadata", createEntity, getMetadata);
-    app.post("/metadata", editMetadata, getMetadata);
+    app.post("/metadata", editMetadata);
+    // app.put("/metadata", createEntity, getMetadata);
 };
