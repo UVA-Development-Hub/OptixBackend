@@ -88,7 +88,7 @@ async function getDatasetByGroup(name) {
     return rows;
 }
 
-async function getGroupsByUser(subject) {
+async function getGroupByUser(subject) {
     const { rows } = await db.query(
         `SELECT g.name 
          FROM groups as g
@@ -103,7 +103,7 @@ async function getGroupsByUser(subject) {
 }
 
 async function getDatasetByUser(subject) {
-    const groups = await getGroupsByUser(subject);
+    const groups = await getGroupByUser(subject);
     const datasets = [];
     for (const group of groups) {
         datasets = datasets.concat(await getDatasetByGroup(group.name));
@@ -161,19 +161,52 @@ async function getDatasetEntityByName(name) {
     return rows[0];
 }
 
+async function getGroup() {
+    const { rows } = await db.query(`SELECT * FROM groups`);
+    if (rows.length === 0) {
+        return [];
+    }
+    return rows;
+}
+
+async function getUser() {
+    const { rows } = await db.query(`SELECT * FROM users`);
+    if (rows.length === 0) {
+        return [];
+    }
+    return rows;
+}
+
+async function getUserByGroup(group) {
+    const { rows } = await db.query(
+        `SELECT u.subject 
+         FROM users as u
+         INNER JOIN user_group as ug
+            ON u.id = ug.user_id
+         INNER JOIN groups as g
+            ON ug.group_id = g.id
+         WHERE g.name = $1`,
+        [group]
+    );
+    return rows;
+}
+
 module.exports = {
     createGroup: createGroup,
     createUser: createUser,
     addUserToGroup: addUserToGroup,
     addDataset: addDataset,
     addDatasetToGroup: addDatasetToGroup,
+    getUser: getUser,
+    getGroup: getGroup,
+    getUserByGroup: getUserByGroup,
     getGroupId: getGroupId,
     getUserId: getUserId,
     getDatasetIdByEntity: getDatasetIdByEntity,
     getDatasetIdByName: getDatasetIdByName,
     getDatasetByGroup: getDatasetByGroup,
     getDatasetEntityByName: getDatasetEntityByName,
-    getGroupsByUser: getGroupsByUser,
+    getGroupByUser: getGroupByUser,
     getDatasetByUser: getDatasetByUser,
     isUserInGroup: isUserInGroup,
     isDatasetInGroup: isDatasetInGroup,

@@ -1,6 +1,96 @@
 const userHelper = require("../../services/user");
 const createError = require("http-errors");
 
+async function getUser(req, res, next) {
+    try {
+        const userList = await userHelper.getUser();
+
+        res.status(200).json({
+            status: "success",
+            data: userList,
+        });
+    } catch (err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
+async function getGroup(req, res, next) {
+    try {
+        const groupList = await userHelper.getGroup();
+
+        res.status(200).json({
+            status: "success",
+            data: groupList,
+        });
+    } catch (err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
+async function getUserByGroup(req, res, next) {
+    try {
+        const group = req.query.group;
+        const userList = await userHelper.getUserByGroup(group);
+
+        res.status(200).json({
+            status: "success",
+            data: userList,
+        });
+    } catch (err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
+async function getGroupByUser(req, res, next) {
+    try {
+        const subject = req.query.subject;
+        const groupList = await userHelper.getGroupByUser(subject);
+
+        res.status(200).json({
+            status: "success",
+            data: groupList,
+        });
+    } catch (err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
 async function createGroup(req, res, next) {
     try {
         const group = req.body.group;
@@ -73,7 +163,11 @@ async function addDatasetToGroup(req, res, next) {
 }
 
 module.exports = (app) => {
+    app.get("/group-management/user", getUser);
+    app.get("/group-management/user/group", getGroupByUser);
+    app.get("/group-management/group", getGroup);
     app.put("/group-management/group", createGroup);
+    app.get("/group-management/group/user", getUserByGroup);
     app.put("/group-management/group/user", addUserToGroup);
     app.put("/group-management/group/dataset", addDatasetToGroup);
 };

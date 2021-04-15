@@ -1,5 +1,29 @@
 const dbHelper = require("../../utils/user-db-query-utils");
 
+async function getUser() {
+    const result = await dbHelper.getUser();
+    const userList = result.map((userInfo) => userInfo.subject);
+    return userList;
+}
+
+async function getGroup() {
+    const result = await dbHelper.getGroup();
+    const groupList = result.map((groupInfo) => groupInfo.name);
+    return groupList;
+}
+
+async function getUserByGroup(group) {
+    const result = await dbHelper.getUserByGroup(group);
+    const userList = result.map((userInfo) => userInfo.subject);
+    return userList;
+}
+
+async function getGroupByUser(subject) {
+    const result = await dbHelper.getGroupByUser(subject);
+    const groupList = result.map((groupInfo) => groupInfo.name);
+    return groupList;
+}
+
 async function createGroup(group) {
     if (await dbHelper.hasGroup(group)) {
         return false;
@@ -44,6 +68,10 @@ async function addDatasetsToGroup(datasets, group) {
 }
 
 module.exports = {
+    getUserByGroup: getUserByGroup,
+    getGroupByUser: getGroupByUser,
+    getUser: getUser,
+    getGroup: getGroup,
     createGroup: createGroup,
     addUserToGroup: addUserToGroup,
     addDatasetsToGroup: addDatasetsToGroup,
