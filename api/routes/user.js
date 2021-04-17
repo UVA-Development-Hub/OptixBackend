@@ -1,4 +1,6 @@
 const userHelper = require("../../services/user");
+const authMiddleware = require("../middleware/auth");
+const userMiddleware = require("../middleware/user");
 const createError = require("http-errors");
 
 async function getUser(req, res, next) {
@@ -139,6 +141,29 @@ async function addUserToGroup(req, res, next) {
     }
 }
 
+async function deleteUserFromGroup(req, res, next) {
+    try {
+        const subjects = req.body.subjects;
+        const group = req.body.group;
+        await userHelper.deleteUserFromGroup(subjects, group);
+        res.status(200).json({
+            status: "success",
+            message: `Delete succecssfully!`,
+        });
+    } catch (err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
 async function addDatasetToGroup(req, res, next) {
     try {
         const datasets = req.body.datasets;
@@ -163,11 +188,14 @@ async function addDatasetToGroup(req, res, next) {
 }
 
 module.exports = (app) => {
+    // app.use("/group-management", authMiddleware.authenticate);
+    // app.use("/group-management/group", userMiddleware.isAdmin);
     app.get("/group-management/user", getUser);
     app.get("/group-management/user/group", getGroupByUser);
     app.get("/group-management/group", getGroup);
     app.put("/group-management/group", createGroup);
     app.get("/group-management/group/user", getUserByGroup);
     app.put("/group-management/group/user", addUserToGroup);
+    app.delete("/group-management/group/user", deleteUserFromGroup);
     app.put("/group-management/group/dataset", addDatasetToGroup);
 };

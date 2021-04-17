@@ -8,6 +8,7 @@ async function login(req, res, next) {
         let result = await authHelper.getToken(code);
         const accesstoken = result.data.access_token;
         result = await authHelper.validate(accesstoken);
+        res.locals.user = result;
         const subject = result.sub;
         const initializeData = await dashboardHelper.initialize(subject);
 

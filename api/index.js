@@ -10,6 +10,5 @@ module.exports = (app) => {
     dataset(app);
     user(app);
     auth(app);
-    // ingestion(app);
     return app;
 };

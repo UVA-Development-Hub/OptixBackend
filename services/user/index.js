@@ -52,6 +52,25 @@ async function addUserToGroup(subjects, group) {
     return true;
 }
 
+async function deleteUserFromGroup(subjects, group) {
+    const groupId = await dbHelper.getGroupId(group);
+    if (!groupId) {
+        throw "group not found.";
+    }
+    for (const subject of subjects) {
+        const userId = await dbHelper.getUserId(subject);
+        if (!userId) {
+            // user id not found
+            continue;
+        }
+        if (!(await dbHelper.isUserInGroup(userId, groupId))) {
+            // user already in group
+            continue;
+        }
+        await dbHelper.deleteUserFromGroup(userId, groupId);
+    }
+}
+
 async function addDatasetsToGroup(datasets, group) {
     const groupId = await dbHelper.getGroupId(group);
     if (!groupId) {
@@ -67,6 +86,10 @@ async function addDatasetsToGroup(datasets, group) {
     }
 }
 
+async function isAdmin(subject) {
+    return await dbHelper.isAdmin(subject);
+}
+
 module.exports = {
     getUserByGroup: getUserByGroup,
     getGroupByUser: getGroupByUser,
@@ -74,5 +97,7 @@ module.exports = {
     getGroup: getGroup,
     createGroup: createGroup,
     addUserToGroup: addUserToGroup,
+    deleteUserFromGroup: deleteUserFromGroup,
     addDatasetsToGroup: addDatasetsToGroup,
+    isAdmin: isAdmin,
 };

@@ -15,6 +15,13 @@ async function addUserToGroup(user_id, group_id) {
     ]);
 }
 
+async function deleteUserFromGroup(user_id, group_id) {
+    return await db.query("DELETE FROM user_group WHERE user_id = $1 AND group_id = $2", [
+        user_id,
+        group_id,
+    ]);
+}
+
 async function addDataset(entity_id, entity_type_id, name, sensor_type) {
     const id = await getDatasetIdByEntity(entity_type_id, entity_id);
     if (id) {
@@ -104,7 +111,7 @@ async function getGroupByUser(subject) {
 
 async function getDatasetByUser(subject) {
     const groups = await getGroupByUser(subject);
-    const datasets = [];
+    let datasets = [];
     for (const group of groups) {
         datasets = datasets.concat(await getDatasetByGroup(group.name));
     }
@@ -143,6 +150,14 @@ async function isDatasetInGroup(group_id, dataset_id) {
         return false;
     }
     return true;
+}
+
+async function isAdmin(subject) {
+    const { rows } = await db.query(`SELECT * FROM users WHERE subject = $1`, [subject]);
+    if (rows.length === 0) {
+        return null;
+    }
+    return rows[0].admin;
 }
 
 async function hasGroup(name) {
@@ -195,6 +210,7 @@ module.exports = {
     createGroup: createGroup,
     createUser: createUser,
     addUserToGroup: addUserToGroup,
+    deleteUserFromGroup: deleteUserFromGroup,
     addDataset: addDataset,
     addDatasetToGroup: addDatasetToGroup,
     getUser: getUser,
@@ -210,5 +226,6 @@ module.exports = {
     getDatasetByUser: getDatasetByUser,
     isUserInGroup: isUserInGroup,
     isDatasetInGroup: isDatasetInGroup,
+    isAdmin: isAdmin,
     hasGroup: hasGroup,
 };

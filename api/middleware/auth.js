@@ -24,7 +24,6 @@ async function authenticate(req, res, next) {
         const result = await authHelper.validate(accesstoken);
 
         res.locals.user = result;
-        console.log(result);
         next();
     } catch (err) {
         if (
