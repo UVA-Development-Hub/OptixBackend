@@ -4,7 +4,7 @@ const axios = require("axios");
 const optixHelper = require("../optix");
 const metadataHelper = require("../metadata");
 const userHelper = require("../user");
-const dbHelper = require("../../utils/user-db-query-utils");
+const dbHelper = require("../db");
 
 const openTSDBAgent = axios.create({
     baseURL: "http://optix-open-tsdb.optix-stack-servicelocal:4242/api/uid/",

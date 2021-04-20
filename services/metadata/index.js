@@ -1,5 +1,5 @@
 const optixHelper = require("../optix");
-const dbHelper = require("../../utils/user-db-query-utils");
+const dbHelper = require("../db");
 
 async function getEntityByDataset(dataset) {
     const { entity_type_id, entity_id } = await dbHelper.getDatasetEntityByName(dataset);

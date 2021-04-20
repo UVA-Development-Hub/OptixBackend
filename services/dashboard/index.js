@@ -1,9 +1,5 @@
 const optixHelper = require("../optix");
-const {
-    getUserId,
-    createUser,
-    getDatasetByUser,
-} = require("../../utils/user-db-query-utils");
+const { getUserId, createUser, getDatasetByUser } = require("../db");
 
 /**
  * Description:

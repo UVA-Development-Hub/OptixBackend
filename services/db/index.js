@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../../db");
 
 async function createGroup(name) {
     return await db.query("INSERT INTO groups(name) VALUES($1)", [name]);

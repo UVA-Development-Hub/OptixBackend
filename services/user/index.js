@@ -1,4 +1,4 @@
-const dbHelper = require("../../utils/user-db-query-utils");
+const dbHelper = require("../db");
 
 async function getUser() {
     const result = await dbHelper.getUser();
