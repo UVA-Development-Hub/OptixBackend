@@ -1,20 +1,20 @@
 const axios = require("axios");
 const CognitoExpress = require("cognito-express");
-require("dotenv").config({ path: "../../" });
+const config = require("../../config");
 const querystring = require("querystring");
 
 const cognitoExpress = new CognitoExpress({
-    region: process.env.COGNITO_REGION,
-    cognitoUserPoolId: `${process.env.COGNITO_REGION}_${process.env.COGNITO_POOL_ID}`,
+    region: config.cognito.region,
+    cognitoUserPoolId: `${config.cognito.region}_${config.cognito.poolId}`,
     tokenUse: "access", //Possible Values: access | id
     tokenExpiration: 3600000, //Up to default expiration of 1 hour (3600000 ms)
 });
 
 const cognitoAgent = axios.create({
-    baseURL: process.env.COGNITO_BASEURL,
-    timeout: parseInt(process.env.COGNITO_TIMEOUT) || 0,
+    baseURL: config.cognito.baseUrl,
+    timeout: parseInt(config.cognito.timeout) || 0,
     headers: {
-        Authorization: `Basic ${process.env.COGNITO_AUTH}`,
+        Authorization: `Basic ${config.cognito.auth}`,
         "Content-Type": "application/x-www-form-urlencoded",
     },
 });
@@ -27,8 +27,8 @@ async function getToken(code) {
         querystring.stringify({
             code: code,
             grant_type: "authorization_code",
-            client_id: process.env.COGNITO_CLIENT_ID,
-            redirect_uri: process.env.COGNITO_REDIRECT_URI,
+            client_id: config.cognito.clientId,
+            redirect_uri: config.cognito.redirectUri,
         })
     );
     return result;

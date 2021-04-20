@@ -4,7 +4,7 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const api = require("./api");
-require("dotenv").config();
+const config = require("./config");
 const app = express();
 
 // log
@@ -37,7 +37,7 @@ app.use(function (err, req, res, next) {
         // handle http err
         messageToSend = { message: err.message };
 
-        if (process.env.NODE_ENV === "development") {
+        if (config.nodeEnv === "development") {
             messageToSend.stack = err.stack;
         }
 
@@ -47,7 +47,7 @@ app.use(function (err, req, res, next) {
         console.error(err.stack);
     }
 
-    if (process.env.NODE_ENV === "production" && !messageToSend) {
+    if (config.nodeEnv === "production" && !messageToSend) {
         messageToSend = { message: "Something broke", status: 500 };
     }
 
