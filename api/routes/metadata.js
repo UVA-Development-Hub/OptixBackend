@@ -76,7 +76,7 @@ async function editMetadata(req, res, next) {
  *
  * @typedef {object} showRequestQuery
  * @property {string} type the entity type name (required).
- * @property {string[]} metrics an array of metric name (required)
+ * @property {string[]} dataset dataset name (required)
  * @property {object} metadata json of the metadata
  *
  * @param {express.Request} req request
@@ -87,14 +87,13 @@ async function createEntity(req, res, next) {
     // check if entity type exists
     try {
         const type = req.body.type;
-        const metrics = req.body.metrics;
+        const dataset = req.body.dataset;
         const metadata = req.body.metadata;
-        const result = await metadataHelper.create(type, metrics, metadata);
-        const entity_id = result.entity_id;
-
-        // add entity id in query for getMetadata
-        req.query.entity_id = entity_id;
-        next();
+        const group = req.body.group;
+        await metadataHelper.create(type, dataset, metadata, group);
+        res.status(200).json({
+            status: "success",
+        });
     } catch (err) {
         if (err.response && err.response.status && err.response.data) {
             const errorData = err.response.data;
@@ -123,5 +122,5 @@ module.exports = (app) => {
     // app.use("/metadata", authMiddleware.authenticate);
     app.get("/metadata", getMetadata);
     app.post("/metadata", editMetadata);
-    // app.put("/metadata", createEntity, getMetadata);
+    app.put("/metadata", createEntity);
 };

@@ -1,5 +1,6 @@
 const optixHelper = require("../optix");
 const dbHelper = require("../db");
+const datasetHelper = require("../dataset");
 
 async function getEntityByDataset(dataset) {
     const { entity_type_id, entity_id } = await dbHelper.getDatasetEntityByName(dataset);
@@ -204,8 +205,20 @@ async function createEntity(type, metrics, metadata) {
     };
 }
 
+async function createEntityForExistDataset(type, dataset, metadata, group) {
+    // get metrics
+    const metrics = await datasetHelper.search(dataset);
+    // create entity
+    const { entity_id, entity_type_id } = await createEntity(type, metrics, metadata);
+    // add entity to db
+    const datasetId = dbHelper.addDataset(entity_id, entity_type_id, dataset, type);
+    const groupId = dbHelper.getGroupId(group);
+    const result = dbHelper.addDatasetToGroup(groupId, datasetId);
+    return result;
+}
+
 module.exports = {
     get: getMetadata,
     edit: modifyMetadata,
-    create: createEntity,
+    create: createEntityForExistDataset,
 };
