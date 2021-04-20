@@ -211,9 +211,9 @@ async function createEntityForExistDataset(type, dataset, metadata, group) {
     // create entity
     const { entity_id, entity_type_id } = await createEntity(type, metrics, metadata);
     // add entity to db
-    const datasetId = dbHelper.addDataset(entity_id, entity_type_id, dataset, type);
-    const groupId = dbHelper.getGroupId(group);
-    const result = dbHelper.addDatasetToGroup(groupId, datasetId);
+    const datasetId = await dbHelper.addDataset(entity_id, entity_type_id, dataset, type);
+    const groupId = await dbHelper.getGroupId(group);
+    const result = await dbHelper.addDatasetToGroup(groupId, datasetId);
     return result;
 }
 
