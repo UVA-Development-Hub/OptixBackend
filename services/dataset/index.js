@@ -5,10 +5,11 @@ const optixHelper = require("../optix");
 const metadataHelper = require("../metadata");
 const userHelper = require("../user");
 const dbHelper = require("../db");
+const config = require("../../config");
 
 const openTSDBAgent = axios.create({
-    baseURL: "http://optix-open-tsdb.optix-stack-servicelocal:4242/api/uid/",
-    timeout: process.env.TIMEOUT || 0,
+    baseURL: config.opentsdb.url,
+    timeout: 0,
 });
 
 async function getDataset(metric, startTime, endTime, tags) {
