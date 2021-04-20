@@ -113,7 +113,7 @@ async function createDataset(req, res, next) {
 }
 
 module.exports = (app) => {
-    app.use("/dataset", authMiddleware.authenticate);
+    // app.use("/dataset", authMiddleware.authenticate);
     app.get("/dataset", getDataset);
     app.put("/dataset", createDataset);
     app.get("/dataset/download", download);

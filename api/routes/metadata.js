@@ -120,7 +120,7 @@ async function createEntity(req, res, next) {
 }
 
 module.exports = (app) => {
-    app.use("/metadata", authMiddleware.authenticate);
+    // app.use("/metadata", authMiddleware.authenticate);
     app.get("/metadata", getMetadata);
     app.post("/metadata", editMetadata);
     // app.put("/metadata", createEntity, getMetadata);
