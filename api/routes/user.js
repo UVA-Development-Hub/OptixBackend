@@ -187,6 +187,28 @@ async function addDatasetToGroup(req, res, next) {
     }
 }
 
+async function getDatasetByGroup(req, res, next) {
+    try {
+        const group = req.body.group;
+        const datasets = await userHelper.getDatasetByGroup(group);
+        res.status(200).json({
+            status: "success",
+            data: datasets,
+        });
+    } catch (err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
 module.exports = (app) => {
     // app.use("/group-management", authMiddleware.authenticate);
     // app.use("/group-management/group", userMiddleware.isAdmin);
@@ -198,4 +220,5 @@ module.exports = (app) => {
     app.put("/group-management/group/user", addUserToGroup);
     app.delete("/group-management/group/user", deleteUserFromGroup);
     app.put("/group-management/group/dataset", addDatasetToGroup);
+    app.get("/group-management/group/dataset", getDatasetByGroup);
 };

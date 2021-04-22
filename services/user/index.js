@@ -90,9 +90,19 @@ async function isAdmin(subject) {
     return await dbHelper.isAdmin(subject);
 }
 
+async function getDatasetByGroup(group) {
+    const groupId = await dbHelper.getGroupId(group);
+    if (!groupId) {
+        throw "group does not exist.";
+    }
+    const datasets = await dbHelper.getDatasetByGroup(group);
+    return datasets;
+}
+
 module.exports = {
     getUserByGroup: getUserByGroup,
     getGroupByUser: getGroupByUser,
+    getDatasetByGroup: getDatasetByGroup,
     getUser: getUser,
     getGroup: getGroup,
     createGroup: createGroup,

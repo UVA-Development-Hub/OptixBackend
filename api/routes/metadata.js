@@ -90,7 +90,7 @@ async function createEntity(req, res, next) {
         const dataset = req.body.dataset;
         const metadata = req.body.metadata;
         const group = req.body.group;
-        await metadataHelper.create(type, dataset, metadata, group);
+        await metadataHelper.linkEntity(type, dataset, metadata, group);
         res.status(200).json({
             status: "success",
         });

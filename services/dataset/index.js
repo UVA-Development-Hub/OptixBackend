@@ -55,8 +55,10 @@ async function createDataset(dataset, sensors, sensorType, metadata, group) {
     const metrics = sensors.map((sensor) => `${dataset}.${sensor}`);
     // add metric name in opentsdb
     for (const metricName of metrics) {
-        options = {
-            metric: metricName,
+        const options = {
+            params: {
+                metric: metricName,
+            }
         };
         await openTSDBAgent.get("assign", options);
     }

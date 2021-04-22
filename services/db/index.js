@@ -83,7 +83,7 @@ async function getDatasetIdByEntity(entity_type_id, entity_id) {
 
 async function getDatasetByGroup(name) {
     const { rows } = await db.query(
-        `SELECT ds.entity_id, ds.entity_type_id 
+        `SELECT ds.name
          FROM datasets as ds
          INNER JOIN group_dataset as gd
             ON ds.id = gd.dataset_id 
@@ -92,7 +92,7 @@ async function getDatasetByGroup(name) {
          WHERE g.name = $1`,
         [name]
     );
-    return rows;
+    return rows.map(dataset => dataset.name);
 }
 
 async function getGroupByUser(subject) {
@@ -129,7 +129,7 @@ async function getDataset() {
 async function isUserInGroup(userId, group_id) {
     const {
         rows,
-    } = await db.query(`SELECT * FROM user_group WHERE user_id = $1 AND group_id = $2`, [
+    } = await db.query("SELECT * FROM user_group WHERE user_id = $1 AND group_id = $2", [
         userId,
         group_id,
     ]);
@@ -143,7 +143,7 @@ async function isDatasetInGroup(group_id, dataset_id) {
     const {
         rows,
     } = await db.query(
-        `SELECT * FROM group_dataset WHERE group_id = $1 AND dataset_id = $2`,
+        "SELECT * FROM group_dataset WHERE group_id = $1 AND dataset_id = $2",
         [group_id, dataset_id]
     );
     if (rows.length === 0) {
@@ -153,7 +153,7 @@ async function isDatasetInGroup(group_id, dataset_id) {
 }
 
 async function isAdmin(subject) {
-    const { rows } = await db.query(`SELECT * FROM users WHERE subject = $1`, [subject]);
+    const { rows } = await db.query("SELECT * FROM users WHERE subject = $1", [subject]);
     if (rows.length === 0) {
         return null;
     }
@@ -161,7 +161,7 @@ async function isAdmin(subject) {
 }
 
 async function hasGroup(name) {
-    const { rows } = await db.query(`SELECT * FROM groups WHERE name = $1`, [name]);
+    const { rows } = await db.query("SELECT * FROM groups WHERE name = $1", [name]);
     if (rows.length === 0) {
         return false;
     }
@@ -169,7 +169,7 @@ async function hasGroup(name) {
 }
 
 async function getDatasetEntityByName(name) {
-    const { rows } = await db.query(`SELECT * FROM datasets WHERE name = $1`, [name]);
+    const { rows } = await db.query("SELECT * FROM datasets WHERE name = $1", [name]);
     if (rows.length === 0) {
         return false;
     }
@@ -177,7 +177,7 @@ async function getDatasetEntityByName(name) {
 }
 
 async function getGroup() {
-    const { rows } = await db.query(`SELECT * FROM groups`);
+    const { rows } = await db.query("SELECT * FROM groups");
     if (rows.length === 0) {
         return [];
     }
@@ -185,7 +185,7 @@ async function getGroup() {
 }
 
 async function getUser() {
-    const { rows } = await db.query(`SELECT * FROM users`);
+    const { rows } = await db.query("SELECT * FROM users");
     if (rows.length === 0) {
         return [];
     }
