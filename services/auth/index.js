@@ -14,7 +14,7 @@ const cognitoAgent = axios.create({
     baseURL: config.cognito.baseUrl,
     timeout: parseInt(config.cognito.timeout) || 0,
     headers: {
-        Authorization: `Basic ${config.cognito.auth}`,
+        // Authorization: `Basic ${config.cognito.auth}`,
         "Content-Type": "application/x-www-form-urlencoded",
     },
 });
