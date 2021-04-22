@@ -125,7 +125,7 @@ async function addUserToGroup(req, res, next) {
         await userHelper.addUserToGroup(subjects, group);
         res.status(200).json({
             status: "success",
-            message: `Add succecssfully!`,
+            message: "Add succecssfully!",
         });
     } catch (err) {
         if (
@@ -148,7 +148,7 @@ async function deleteUserFromGroup(req, res, next) {
         await userHelper.deleteUserFromGroup(subjects, group);
         res.status(200).json({
             status: "success",
-            message: `Delete succecssfully!`,
+            message: "Delete succecssfully!",
         });
     } catch (err) {
         if (
@@ -171,7 +171,7 @@ async function addDatasetToGroup(req, res, next) {
         await userHelper.addDatasetsToGroup(datasets, group);
         res.status(200).json({
             status: "success",
-            message: `Add succecssfully!`,
+            message: "Add succecssfully!",
         });
     } catch (err) {
         if (
@@ -189,7 +189,7 @@ async function addDatasetToGroup(req, res, next) {
 
 async function getDatasetByGroup(req, res, next) {
     try {
-        const group = req.body.group;
+        const group = req.query.group;
         const datasets = await userHelper.getDatasetByGroup(group);
         res.status(200).json({
             status: "success",
