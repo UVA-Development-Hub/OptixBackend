@@ -86,7 +86,7 @@ async function search(dataset, max) {
     let options = {
         t: "metrics",
         q: dataset,
-        max: max,
+        max: max || 9999,
     };
     let result = await optixHelper.query("search", options, "get");
     return result.data;
