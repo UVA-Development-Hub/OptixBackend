@@ -3,10 +3,12 @@ const HTTPStatuses = require("statuses");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const api = require("./api");
 const config = require("./config");
 const app = express();
 
+app.use(cors());
 // log
 const rfs = require("rotating-file-stream");
 const logger = require("morgan");
