@@ -18,14 +18,14 @@ const createError = require("http-errors");
  */
 async function getDataset(req, res, next) {
     try {
-        const metric = req.query.metric;
+        const dataset = req.query.dataset;
         const startTime = req.query.start_time;
         const endTime = req.query.end_time;
         const tags = req.query.tags;
-        const dataset = await datasetHelper.getDataset(metric, startTime, endTime, tags);
+        const data = await datasetHelper.getDataset(dataset, startTime, endTime, tags);
         res.status(200).json({
             status: "success",
-            data: dataset,
+            data: data,
         });
     } catch (err) {
         if (

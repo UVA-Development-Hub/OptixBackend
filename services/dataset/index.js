@@ -12,18 +12,26 @@ const openTSDBAgent = axios.create({
     timeout: 0,
 });
 
-async function getDataset(metric, startTime, endTime, tags) {
-    const result = await optixHelper.query(
-        "timeseries",
-        {
-            metric: metric,
-            start_time: startTime,
-            end_time: endTime,
-            tags: tags,
-        },
-        "get"
-    );
-    return result.data;
+async function getDataset(dataset, startTime, endTime, tags) {
+    const metrics = await search(dataset);
+    const data = [];
+    for(const metric of metrics) {
+        const result = await optixHelper.query(
+            "timeseries",
+            {
+                metric: metric,
+                start_time: startTime,
+                end_time: endTime,
+                tags: tags,
+            },  
+            "get"
+        );
+        if(result.data.length === 0) {
+            break;
+        }
+        data.push(result.data[0]);
+    }
+    return data;
 }
 
 async function download(metric, startTime, endTime) {
