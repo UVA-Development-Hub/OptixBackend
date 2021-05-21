@@ -22,6 +22,12 @@ async function getDataset(req, res, next) {
         const startTime = req.query.start_time;
         const endTime = req.query.end_time;
         const tags = req.query.tags;
+        if(!dataset || dataset === "") {
+            res.status(400).json({
+                error: "empty dataset"
+            });
+            return;
+        }
         const data = await datasetHelper.getDataset(dataset, startTime, endTime, tags);
         res.status(200).json({
             status: "success",
@@ -46,7 +52,12 @@ async function download(req, res, next) {
         const start_time = req.query.start_time;
         const end_time = req.query.end_time;
         const dataset = req.query.dataset;
-
+        if(!dataset || dataset === "") {
+            res.status(400).json({
+                error: "empty dataset"
+            });
+            return;
+        }
         const filePath = await datasetHelper.download(dataset, start_time, end_time);
 
         res.download(filePath);
