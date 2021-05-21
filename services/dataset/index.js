@@ -37,10 +37,10 @@ async function getDataset(dataset, startTime, endTime, tags) {
 
 async function download(dataset, startTime, endTime) {
     const data = await getDataset(dataset, startTime, endTime);
-    startTime = moment(startTime).format("YYYY-MM-DDTHH-mm-ss");
+    startTime = moment(new Date(startTime)).format("YYYY-MM-DDTHH-mm-ss");
     let filename = `${dataset}_${startTime}`;
     if (endTime) {
-        endTime = moment(endTime).format("YYYY-MM-DDTHH-mm-ss");
+        endTime = moment(new Date(endTime)).format("YYYY-MM-DDTHH-mm-ss");
         filename += `_${endTime}`;
     }
 
