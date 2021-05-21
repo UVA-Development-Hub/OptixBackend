@@ -1,6 +1,7 @@
 const fs = require("fs-extra");
 const path = require("path");
 const axios = require("axios");
+const moment = require("moment");
 const optixHelper = require("../optix");
 const metadataHelper = require("../metadata");
 const userHelper = require("../user");
@@ -36,10 +37,10 @@ async function getDataset(dataset, startTime, endTime, tags) {
 
 async function download(dataset, startTime, endTime) {
     const data = await getDataset(dataset, startTime, endTime);
-    startTime = startTime.replace(/\//g, "-");
+    startTime = moment(startTime).format("YYYY-MM-DDTHH-mm-ss");
     let filename = `${dataset}_${startTime}`;
     if (endTime) {
-        endTime = endTime.replace(/\//g, "-");
+        endTime = moment(endTime).format("YYYY-MM-DDTHH-mm-ss");
         filename += `_${endTime}`;
     }
 
