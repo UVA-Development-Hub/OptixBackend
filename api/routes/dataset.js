@@ -45,9 +45,9 @@ async function download(req, res, next) {
     try {
         const start_time = req.query.start_time;
         const end_time = req.query.end_time;
-        const metric = req.query.metric;
+        const dataset = req.query.dataset;
 
-        const filePath = await datasetHelper.download(metric, start_time, end_time);
+        const filePath = await datasetHelper.download(dataset, start_time, end_time);
 
         res.download(filePath);
     } catch (err) {

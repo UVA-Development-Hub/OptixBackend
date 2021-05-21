@@ -34,10 +34,10 @@ async function getDataset(dataset, startTime, endTime, tags) {
     return data;
 }
 
-async function download(metric, startTime, endTime) {
-    const data = await getDataset(metric, startTime, endTime);
+async function download(dataset, startTime, endTime) {
+    const data = await getDataset(dataset, startTime, endTime);
     startTime = startTime.replace(/\//g, "-");
-    let filename = `${metric}_${startTime}`;
+    let filename = `${dataset}_${startTime}`;
     if (endTime) {
         endTime = endTime.replace(/\//g, "-");
         filename += `_${endTime}`;
