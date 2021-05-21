@@ -22,4 +22,5 @@ logs/*
 # env
 .env
 
-package-lock.json
+# public
+/public
