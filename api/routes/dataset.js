@@ -3,18 +3,15 @@ const datasetHelper = require("../../services/dataset");
 const createError = require("http-errors");
 
 /**
- * Description:
- *      timeseries middleware
- *
- * @typedef {object} showRequestQuery
- * @property {string} metric metric name in the OpenTSDB (required).
- * @property {string} start_time start time of the time range (required).
- * @property {string} end_time end time of the time range (optional).
- * @property {object} tags key:value pairs to filter (optional).
- *
- * @param {express.Request} req request
- * @param {express.Response} res response
- * @param {express.NextFunction} next next function
+ * Get dataset
+ * @route GET /dataset
+ * @group dataset
+ * @param {string} dataset.required dataset name in the OpenTSDB (required).
+ * @param {string} start_time.required start time of the time range (required).
+ * @param {string} end_time end time of the time range (optional).
+ * @param {object} tags key:value pairs to filter on (optional).
+ * @returns {object} 200 - returns timeseries data that matching the given query
+ * @returns {Error} default - Unexpected error
  */
 async function getDataset(req, res, next) {
     try {
@@ -47,6 +44,16 @@ async function getDataset(req, res, next) {
     }
 }
 
+/**
+ * Download dataset
+ * @route GET /dataset/download
+ * @group dataset
+ * @param {string} dataset.required dataset name in the OpenTSDB (required).
+ * @param {string} start_time.required start time of the time range (required).
+ * @param {string} end_time end time of the time range (optional).
+ * @returns {object} 200 - returns timeseries data that matching the given query
+ * @returns {Error} default - Unexpected error
+ */
 async function download(req, res, next) {
     try {
         const start_time = req.query.start_time;
@@ -75,6 +82,15 @@ async function download(req, res, next) {
     }
 }
 
+/**
+ * Search dataset
+ * @route GET /dataset/search
+ * @group dataset
+ * @param {string} dataset.required dataset name in the OpenTSDB (required).
+ * @param {integer} max maximum number of values (optional).
+ * @returns {[string]} 200 - list of datasets
+ * @returns {Error} default - Unexpected error
+ */
 async function search(req, res, next) {
     try {
         const dataset = req.query.dataset;
@@ -98,6 +114,18 @@ async function search(req, res, next) {
     }
 }
 
+/**
+ * Add new dataset
+ * @route PUT /dataset
+ * @group dataset
+ * @param {string} dataset.required dataset name in the OpenTSDB (required).
+ * @param {[string]} sensors.required sensors of the new dataset (requried).
+ * @param {string} sensor_type.required sensor type name (required).
+ * @param {string} group.required group name where the dataset belongs to (required).
+ * @param {object} metadata metadata of the dataset in json format (optional).
+ * @returns {[string]} 200
+ * @returns {Error} default - Unexpected error
+ */
 async function createDataset(req, res, next) {
     try {
         const dataset = req.body.dataset;
