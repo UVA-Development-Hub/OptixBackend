@@ -3,15 +3,12 @@ const authMiddleware = require("../middleware/auth");
 const createError = require("http-errors");
 
 /**
- * Description:
- *      get metadata
- *
- * @typedef {object} showRequestQuery
- * @property {string} dataset dataset name (required).
- *
- * @param {express.Request} req request
- * @param {express.Response} res response
- * @param {express.NextFunction} next next function
+ * Get metadata
+ * @route GET /metadata
+ * @group metadata
+ * @param {string} dataset.required dataset name in the OpenTSDB (required).
+ * @returns {object} 200 - returns metadata
+ * @returns {Error} default - Unexpected error
  */
 async function getMetadata(req, res, next) {
     try {
@@ -36,16 +33,13 @@ async function getMetadata(req, res, next) {
 }
 
 /**
- * Description:
- *      editMetadata middleware
- *
- * @typedef {object} showRequestQuery
- * @property {string} dataset (required).
- * @property {object} new_metadata (required).
- *
- * @param {express.Request} req request
- * @param {express.Response} res response
- * @param {express.NextFunction} next next function
+ * Edit metadata
+ * @route POST /metadata
+ * @group metadata
+ * @param {string} dataset.required dataset name in the OpenTSDB (required).
+ * @param {object} new_metadata.required new metadata of the dataset
+ * @returns {object} 200 - returns metadata
+ * @returns {Error} default - Unexpected error
  */
 async function editMetadata(req, res, next) {
     const dataset = req.body.dataset;
@@ -71,17 +65,15 @@ async function editMetadata(req, res, next) {
 }
 
 /**
- * Description:
- *      create entity
- *
- * @typedef {object} showRequestQuery
- * @property {string} type the entity type name (required).
- * @property {string[]} dataset dataset name (required)
- * @property {object} metadata json of the metadata
- *
- * @param {express.Request} req request
- * @param {express.Response} res response
- * @param {express.NextFunction} next next function
+ * Create entity for existed dataset
+ * @route PUT /metadata
+ * @group metadata
+ * @param {string} dataset.required dataset name in the OpenTSDB (required).
+ * @param {string} type.required sensor type name (required).
+ * @param {string} group.required group name where the dataset belongs to (required).
+ * @param {object} metadata new metadata of the dataset (optional).
+ * @returns {object} 200
+ * @returns {Error} default - Unexpected error
  */
 async function createEntity(req, res, next) {
     // check if entity type exists
