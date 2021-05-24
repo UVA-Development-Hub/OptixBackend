@@ -7,6 +7,7 @@ const cors = require("cors");
 const api = require("./api");
 const config = require("./config");
 const app = express();
+const expressSwagger = require("express-swagger-generator")(app);
 
 app.use(cors());
 // log
@@ -26,6 +27,33 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 api(app);
+
+let swaggerOptions = {
+    swaggerDefinition: {
+        info: {
+            description: "DevHub Optix Backend Server",
+            title: "Swagger",
+            version: "1.0.0",
+        },
+        host: "localhost:5000",
+        basePath: "",
+        produces: [
+            "application/json",
+        ],
+        schemes: ["http"],
+        securityDefinitions: {
+            JWT: {
+                type: "apiKey",
+                in: "header",
+                name: "Authorization",
+                description: "",
+            }
+        }
+    },
+    basedir: __dirname, //app absolute path
+    files: ["./api/routes/*.js"] //Path to the API handle folder
+};
+expressSwagger(swaggerOptions);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
