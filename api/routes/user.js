@@ -3,6 +3,13 @@ const authMiddleware = require("../middleware/auth");
 const userMiddleware = require("../middleware/user");
 const createError = require("http-errors");
 
+/**
+ * Get users
+ * @route GET /group-management/user
+ * @group group management
+ * @returns {object} 200 - List of users.
+ * @returns {Error} default - Unexpected error
+ */
 async function getUser(req, res, next) {
     try {
         const userList = await userHelper.getUser();
@@ -25,6 +32,13 @@ async function getUser(req, res, next) {
     }
 }
 
+/**
+ * Get groups
+ * @route GET /group-management/group
+ * @group group management
+ * @returns {object} 200 - List of groups.
+ * @returns {Error} default - Unexpected error
+ */
 async function getGroup(req, res, next) {
     try {
         const groupList = await userHelper.getGroup();
@@ -47,6 +61,14 @@ async function getGroup(req, res, next) {
     }
 }
 
+/**
+ * Get users by the group
+ * @route GET /group-management/group/user
+ * @group group management
+ * @param {string} group.required group name
+ * @returns {object} 200 - List of users of the input group.
+ * @returns {Error} default - Unexpected error
+ */
 async function getUserByGroup(req, res, next) {
     try {
         const group = req.query.group;
@@ -70,6 +92,14 @@ async function getUserByGroup(req, res, next) {
     }
 }
 
+/**
+ * Get the user's groups
+ * @route GET /group-management/user/group
+ * @group group management
+ * @param {string} subject.required user's subject (required).
+ * @returns {object} 200 - List of groups of the input user.
+ * @returns {Error} default - Unexpected error
+ */
 async function getGroupByUser(req, res, next) {
     try {
         const subject = req.query.subject;
@@ -93,6 +123,14 @@ async function getGroupByUser(req, res, next) {
     }
 }
 
+/**
+ * Create a new group
+ * @route PUT /group-management/group
+ * @group group management
+ * @param {string} group.required group name (required).
+ * @returns {object} 200
+ * @returns {Error} default - Unexpected error
+ */
 async function createGroup(req, res, next) {
     try {
         const group = req.body.group;
@@ -118,6 +156,15 @@ async function createGroup(req, res, next) {
     }
 }
 
+/**
+ * Add users to group
+ * @route PUT /group-management/group/user
+ * @group group management
+ * @param {string} group.required group name (required).
+ * @param {[string]} subject.required a list of users' subjects (required).
+ * @returns {object} 200
+ * @returns {Error} default - Unexpected error
+ */
 async function addUserToGroup(req, res, next) {
     try {
         const subjects = req.body.subjects;
@@ -141,6 +188,15 @@ async function addUserToGroup(req, res, next) {
     }
 }
 
+/**
+ * Delete users to group
+ * @route DELETE /group-management/group/user
+ * @group group management
+ * @param {string} group.required group name (required).
+ * @param {[string]} subjects.required a list of user' subjects (required).
+ * @returns {object} 200
+ * @returns {Error} default - Unexpected error
+ */
 async function deleteUserFromGroup(req, res, next) {
     try {
         const subjects = req.body.subjects;
@@ -164,6 +220,16 @@ async function deleteUserFromGroup(req, res, next) {
     }
 }
 
+
+/**
+ * Add dataset to group
+ * @route PUT /group-management/group/dataset
+ * @group group management
+ * @param {string} group.required group name (required).
+ * @param {[string]} datasets.required list of datasets (required).
+ * @returns {object} 200
+ * @returns {Error} default - Unexpected error
+ */
 async function addDatasetToGroup(req, res, next) {
     try {
         const datasets = req.body.datasets;
@@ -187,6 +253,15 @@ async function addDatasetToGroup(req, res, next) {
     }
 }
 
+/**
+ * Get dataset of the group
+ * @route GET /group-management/group/dataset
+ * @group group management
+ * @param {string} group.required group name (required).
+ * @param {[string]} datasets.required list of datasets (required).
+ * @returns {object} 200 - List of dataset of the input group.
+ * @returns {Error} default - Unexpected error
+ */
 async function getDatasetByGroup(req, res, next) {
     try {
         const group = req.query.group;
