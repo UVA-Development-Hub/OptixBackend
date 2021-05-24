@@ -8,11 +8,22 @@ const userHelper = require("../user");
 const dbHelper = require("../db");
 const config = require("../../config");
 
+// agent for query openTSDB endpoint
 const openTSDBAgent = axios.create({
     baseURL: config.opentsdb.url,
     timeout: 0,
 });
 
+/**
+ * Description:
+ *      get data from Optix timeseries endpoint
+ *
+ * @param {string} dataset dataset name (required).
+ * @param {string} startTime start time (required).
+ * @param {string} endTime end time (optional).
+ * @param {object} tags key:value pairs to filter on (optional).
+ * @return {object} data
+ */
 async function getDataset(dataset, startTime, endTime, tags) {
     const metrics = await search(dataset);
     const data = [];
@@ -35,6 +46,14 @@ async function getDataset(dataset, startTime, endTime, tags) {
     return data;
 }
 
+/**
+ * Description:
+ *      get data from Optix timeseries endpoint and store in the /public/download
+ * @param {string} dataset dataset name (required).
+ * @param {string} startTime start time(required).
+ * @param {string} endTime end time (optional).
+ * @return {string} file path
+ */
 async function download(dataset, startTime, endTime) {
     const data = await getDataset(dataset, startTime, endTime);
     startTime = moment(new Date(startTime)).format("YYYY-MM-DDTHH-mm-ss");
@@ -54,6 +73,15 @@ async function download(dataset, startTime, endTime) {
     return filePath;
 }
 
+/**
+ * Description:
+ *      create a new dataset
+ * @param {string} dataset dataset name (required).
+ * @param {string} sensors start time(required).
+ * @param {string} sensorType sensor type name (required).
+ * @param {string} metadata end time (optional).
+ * @param {string} group group name where the dataset belongs to (required).
+ */
 async function createDataset(dataset, sensors, sensorType, metadata, group) {
     // set up metric name
     // check if metric exists
@@ -91,6 +119,13 @@ async function createDataset(dataset, sensors, sensorType, metadata, group) {
     await userHelper.addDatasetsToGroup([dataset], group);
 }
 
+/**
+ * Description:
+ *      search the dataset
+ * @param {string} dataset dataset name (required).
+ * @param {integer} max maximum number of values (optional).
+ * @return {[string]} a list of dataset
+ */
 async function search(dataset, max) {
     let options = {
         t: "metrics",
