@@ -3,9 +3,8 @@ const createError = require("http-errors");
 
 /**
  * Description:
- *      authenticate the token. send the token to cognito to get user info. token will be
- *      in req.headers (user query) or res.locals.data (login, sign up)
- * @typedef {object} showRequestHeader||showResponseLocalsData
+ *      authenticate the token. send the token to Cognito to get user info.
+ * @typedef {object} showRequestHeader
  * @property {string} access_token cognito access token (required).
  *
  * @param {express.Request} req request
@@ -16,7 +15,7 @@ async function authenticate(req, res, next) {
     try {
         // get access token
         let accesstoken = req.headers.access_token;
-        // Fail if token not present eithrt in header or locals.
+        // Fail if token not present
         if (!accesstoken) {
             next(createError(401, "Access token missing."));
             return;

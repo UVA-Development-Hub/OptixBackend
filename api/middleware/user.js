@@ -1,9 +1,19 @@
 const userHelper = require("../../services/user");
 const createError = require("http-errors");
 
+/**
+ * Description:
+ *      check if the user is admin user
+ * @typedef {object} showRequestHeader
+ * @property {string} sub user's subject
+ *
+ * @param {express.Request} req request
+ * @param {express.Response} res response
+ * @param {express.NextFunction} next next function
+ */
 async function isAdmin(req, res, next) {
     try {
-        const subject = res.locals.user.sub;
+        const subject = res.headers.user.sub;
         if (!(await userHelper.isAdmin(subject))) {
             next(createError(401, "admin user LengthRequired."));
             return;
