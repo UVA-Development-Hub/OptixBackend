@@ -1,6 +1,13 @@
 const optixHelper = require("../optix");
 const dbHelper = require("../db");
 
+/**
+ * Description:
+ *      get entity by the dataset name
+ *
+ * @param {string} dataset dataset name
+ * @return {object} entity type id and entity id
+ */
 async function getEntityByDataset(dataset) {
     const { entity_type_id, entity_id } = await dbHelper.getDatasetEntityByName(dataset);
     return {
@@ -9,6 +16,14 @@ async function getEntityByDataset(dataset) {
     };
 }
 
+/**
+ * Description:
+ *      get metadata by dataset
+ *
+ * @param {string} dataset dataset name
+ * @param {string} entity_id entity id of the dataset (optional)
+ * @return {object} metadata in json format
+ */
 async function getMetadata(dataset, entity_id) {
     if (!entity_id) {
         const entity = await getEntityByDataset(dataset);
@@ -155,6 +170,14 @@ async function modifyMetadata(dataset, new_metadata) {
     }
 }
 
+/**
+ * Description:
+ *      create new entity for the new dataset (used in dataset interface)
+ *
+ * @param {string} type sensor type (entity type name)
+ * @param {[string]} metrics array of metric
+ * @param {object} metadata metadata of the dataset
+ */
 async function createEntity(type, metrics, metadata) {
     let result = undefined;
     try {
@@ -204,6 +227,15 @@ async function createEntity(type, metrics, metadata) {
     };
 }
 
+/**
+ * Description:
+ *      create new entity for the existed dataset
+ *
+ * @param {string} type sensor type
+ * @param {string} dataset dataset name
+ * @param {object} metadata metadata of the dataset
+ * @param {string} group group name
+ */
 async function createEntityForExistDataset(type, dataset, metadata, group) {
     let options = {
         t: "metrics",
@@ -217,7 +249,7 @@ async function createEntityForExistDataset(type, dataset, metadata, group) {
     // add entity to db
     const datasetId = await dbHelper.addDataset(entity_id, entity_type_id, dataset, type);
     const groupId = await dbHelper.getGroupId(group);
-    return await dbHelper.addDatasetToGroup(groupId, datasetId);
+    await dbHelper.addDatasetToGroup(groupId, datasetId);
 }
 
 module.exports = {
