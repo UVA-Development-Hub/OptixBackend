@@ -35,7 +35,7 @@ async function getDataset(dataset, startTime, endTime, tags) {
                 start_time: startTime,
                 end_time: endTime,
                 tags: tags,
-            },  
+            },
             "get"
         );
         if(result.data.length === 0) {
@@ -71,6 +71,33 @@ async function download(dataset, startTime, endTime) {
     }
     await fs.outputJson(filePath, data);
     return filePath;
+}
+
+/**
+ * Description:
+ *      get data from Optix timeseries endpoint and transform it into tsv format
+ * @param {string} dataset dataset name (required).
+ * @param {string} chunkStart start time(required).
+ * @param {string} chunkEnd end time (required).
+ * @return {string} tsv string containing data from the time chunk starting at chunkStart
+ */
+async function getTsvData(dataset, chunkStart, chunkEnd) {
+    startTime = chunkStart.format("YYYY/MM/DD HH:mm:ss");
+    endTime = chunkEnd.format("YYYY/MM/DD HH:mm:ss");
+
+    try {
+        const chunk_data =
+        await getDataset(
+            dataset,
+            startTime,
+            endTime);
+        const tsv_data = chunk_data.map(({metric, tags, aggregateTags, dps}) =>
+            Object.entries(dps).map(([epoch_time, value]) =>
+                `${metric}\t${epoch_time}\t${value}\t${JSON.stringify(tags)}\t[${aggregateTags.toString()}]`
+            ).join("\n")
+        ).join("\n");
+        return tsv_data;
+    } catch(err) { return false; }
 }
 
 /**
@@ -141,4 +168,5 @@ module.exports = {
     download: download,
     createDataset: createDataset,
     search: search,
+    getTsvData: getTsvData,
 };
