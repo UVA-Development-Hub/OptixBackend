@@ -1,3 +1,4 @@
+const moment = require('moment');
 const authMiddleware = require("../middleware/auth");
 const datasetHelper = require("../../services/dataset");
 const createError = require("http-errors");
@@ -151,10 +152,101 @@ async function createDataset(req, res, next) {
     }
 }
 
+/**
+ * Download
+ * @route GET /dataset/tsvdownload
+ * @group dataset
+ * @param {string} dataset.required dataset name in the OpenTSDB (required)
+ * @param {string} start_time.required start time of the time range (required)
+ * @param {string} end_time end time of the time range (optional)
+ * @returns {object} 200 - returns
+ * @returns {Error} default - Unexpected error
+ */
+async function chunkifiedTsvDownload(req, res, next) {
+    const input_date_format = 'YYYY/MM/DD HH:mm:ss';
+    try {
+        const dataset = req.query.dataset;
+        if(!dataset || dataset === "") {
+            res.status(400).json({
+                error: "empty dataset"
+            });
+            return;
+        }
+
+        const start_time = req.query.start_time;
+        const end_time = req.query.end_time;
+
+        // Setup chunk timings
+        let chunk_time = moment(start_time, input_date_format); // "chunk start time"
+        let chunk_end = end_time ? moment(end_time, input_date_format) : moment(); // end time is either specified or defaults to "now"
+
+        // Setup the response headers
+        const filename_time_format = "x";
+        filename = dataset +
+            "__" +
+            chunk_time.format(filename_time_format) +
+            "__" +
+            chunk_end.format(filename_time_format) +
+            ".tsv";
+        res.set({
+            "Content-Disposition": `attachment; filename="${filename}"`,
+            "Content-Type": "text/csv",
+        });
+
+        // Write column names ahead of any data
+        res.write("dataset\ttimestamp\tsensor value\ttags\taggregateTags\n");
+
+        // Stop chunking process if the download is interrupted
+        let abort = false;
+        function cancelDownload() { abort = true; }
+        res.on("aborted", cancelDownload);
+        res.on("close", cancelDownload);
+
+        // Break the request into 10m chunks
+        while(chunk_time.isBefore(chunk_end)) {
+            if(abort) break;
+
+            // Compute the current chunk boundary
+            let next_chunk_end = moment(chunk_time)
+                .seconds(chunk_time.seconds() + 600);
+
+            // request tsv data for the current chunk
+            let chunk =
+                await datasetHelper.getTsvData(
+                    dataset,
+                    chunk_time,
+                    next_chunk_end);
+
+            // if there was not an arror with fetching the chunk, write
+            // the chunk data to the response
+            if(chunk !== false) res.write(chunk);
+
+            // move chunk start time forwards
+            chunk_time = next_chunk_end;
+        }
+
+        // signal that the download is finished
+        res.end();
+
+    } catch(err) {
+        if(
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
 module.exports = (app) => {
     // app.use("/dataset", authMiddleware.authenticate);
     app.get("/dataset", getDataset);
     app.put("/dataset", createDataset);
     app.get("/dataset/download", download);
     app.get("/dataset/search", search);
+    app.get("/dataset/tsvdownload", chunkifiedTsvDownload);
 };
