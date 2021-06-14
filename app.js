@@ -25,6 +25,22 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+// Authenticator
+const CognitoExpress = new (require("cognito-express"))({
+    region: config.cognito.region,
+    cognitoUserPoolId: `${config.cognito.region}_${config.cognito.poolId}`,
+    tokenUse: "access",
+    tokenExpiration: 3600000,
+});
+app.use(function(req, res, next) {
+    CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
+        if(err) res.status(401).send({
+            message: 'invalid authentication token provided. verify a proper token was presented in the access-control-token header'
+        });
+        else next();
+    });
+});
+
 api(app);
 
 // catch 404 and forward to error handler
