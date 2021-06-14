@@ -7,12 +7,21 @@ const CognitoExpress = new (require("cognito-express"))({
 });
 
 function authenticate(req, res, next) {
-    CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
-        if(err) res.status(401).send({
-            message: 'invalid authentication token provided. verify a proper token was presented in the access-control-token header'
+    function unauthorized() {
+        res.status(401).send({
+            message: "invalid authentication token provided. verify a proper token was presented in the access-control-token header"
         });
-        else next();
-    });
+    }
+    try {
+        if(!req.headers) unauthorized();
+        CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
+            if(err) unauthorized();
+            else next();
+        });
+    } catch(err) {
+        console.log("Unexpected authentication error:", err);
+        unauthorized();
+    }
 }
 
 module.exports = {
