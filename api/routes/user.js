@@ -1,5 +1,10 @@
+//
+//
+// This file will probably be deleted in the future
+//
+//
+
 const userHelper = require("../../services/user");
-const authMiddleware = require("../middleware/auth");
 const userMiddleware = require("../middleware/user");
 const createError = require("http-errors");
 
@@ -285,8 +290,6 @@ async function getDatasetByGroup(req, res, next) {
 }
 
 module.exports = (app) => {
-    // app.use("/group-management", authMiddleware.authenticate);
-    // app.use("/group-management/group", userMiddleware.isAdmin);
     app.get("/group-management/user", getUser);
     app.get("/group-management/user/group", getGroupByUser);
     app.get("/group-management/group", getGroup);

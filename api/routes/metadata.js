@@ -1,5 +1,4 @@
 const metadataHelper = require("../../services/metadata");
-const authMiddleware = require("../middleware/auth");
 const createError = require("http-errors");
 
 /**
@@ -111,7 +110,6 @@ async function createEntity(req, res, next) {
 }
 
 module.exports = (app) => {
-    // app.use("/metadata", authMiddleware.authenticate);
     app.get("/metadata", getMetadata);
     app.post("/metadata", editMetadata);
     app.put("/metadata", createEntity);

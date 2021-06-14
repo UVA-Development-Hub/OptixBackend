@@ -1,5 +1,4 @@
 const moment = require('moment');
-const authMiddleware = require("../middleware/auth");
 const datasetHelper = require("../../services/dataset");
 const createError = require("http-errors");
 
@@ -243,7 +242,6 @@ async function chunkifiedTsvDownload(req, res, next) {
 }
 
 module.exports = (app) => {
-    // app.use("/dataset", authMiddleware.authenticate);
     app.get("/dataset", getDataset);
     app.put("/dataset", createDataset);
     app.get("/dataset/download", download);
