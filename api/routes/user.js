@@ -5,7 +5,6 @@
 //
 
 const userHelper = require("../../services/user");
-const userMiddleware = require("../middleware/user");
 const createError = require("http-errors");
 
 /**
