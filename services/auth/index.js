@@ -24,7 +24,7 @@ function authenticate(req, res, next) {
         CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
             req.user = authenticated_user;
             if(err) unauthorized(res);
-            else if(req.user.accessToken.payload["cognito:groups"].indexOf("approved") === -1) unauthorized(res, NeedsApprovedUser);
+            else if(req.user["cognito:groups"].indexOf("approved") === -1) unauthorized(res, NeedsApprovedUser);
             else next();
         });
     } catch(err) {
@@ -41,12 +41,23 @@ function authenticate(req, res, next) {
 // possessing membership of this group.
 function require_admin(req, res, next) {
     try {
-        if(req.user.accessToken.payload["cognito:groups"].indexOf("admin_group_crud") === -1) unauthorized(res);
+        if(req.user["cognito:groups"].indexOf("admin_group_crud") === -1) unauthorized(res);
         else next();
     } catch(err) {
         console.log("Unexpected admin authentication error:", err);
         res.status(500).send({
             message: "admin group verification failed"
+        });
+    }
+}
+
+function verify_sensor_access(req, res, next) {
+    try {
+        
+    } catch(err) {
+        console.log("Unexpected failure in verification of sensor access");
+        res.status(500).send({
+            message: "admin sensor access verification failed"
         });
     }
 }
