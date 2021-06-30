@@ -2,6 +2,8 @@ const moment = require('moment');
 const datasetHelper = require("../../services/dataset");
 const createError = require("http-errors");
 
+const { DateTime } = require("luxon");
+
 /**
  * Get dataset
  * @route GET /dataset
@@ -25,7 +27,10 @@ async function getDataset(req, res, next) {
             });
             return;
         }
-        const data = await datasetHelper.getDataset(dataset, startTime, endTime, tags);
+
+        // Default to the server's timezone
+        const tz = req.query.tz || DateTime.local().zoneName;
+        const data = await datasetHelper.getDataset(dataset, startTime, endTime, tz, tags);
         res.status(200).json({
             status: "success",
             data: data,

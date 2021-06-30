@@ -8,6 +8,8 @@ const userHelper = require("../user");
 const dbHelper = require("../db");
 const config = require("../../config");
 
+const { DateTime } = require("luxon");
+
 // agent for query openTSDB endpoint
 const openTSDBAgent = axios.create({
     baseURL: config.opentsdb.url,
@@ -24,16 +26,21 @@ const openTSDBAgent = axios.create({
  * @param {object} tags key:value pairs to filter on (optional).
  * @return {object} data
  */
-async function getDataset(dataset, startTime, endTime, tags) {
+async function getDataset(dataset, startTime, endTime, timezone, tags) {
     const metrics = await search(dataset);
     const data = [];
     for(const metric of metrics) {
+        function toUTC(time) {
+            return DateTime.fromFormat(time, "yyyy/MM/dd HH:mm:ss", {
+                zone: timezone
+            }).setZone("UTC").toFormat("yyyy/MM/dd HH:mm:ss");
+        }
         const result = await optixHelper.query(
             "timeseries",
             {
                 metric: metric,
-                start_time: startTime,
-                end_time: endTime,
+                start_time: toUTC(startTime),
+                end_time: endTime ? toUTC(endTime) : endTime,
                 tags: tags,
             },
             "get"
