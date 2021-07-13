@@ -29,14 +29,19 @@ async function getMetadata(dataset, entity_id) {
         const entity = await getEntityByDataset(dataset);
         entity_id = entity.entity_id;
     }
-    const result = await optixHelper.query(
-        "metadata",
-        {
-            entity_id: entity_id,
-        },
-        "get"
-    );
-    return result.data;
+    console.log("querying optix", entity_id);
+    try {
+        const result = await optixHelper.query(
+            "metadata",
+            {
+                entity_id: entity_id,
+            },
+            "get"
+        );
+        return result.data;
+    } catch(err) {
+        return {};
+    }
 }
 
 /**
@@ -122,52 +127,56 @@ async function modifyMetadata(dataset, new_metadata) {
     const metadataToBeUpdated = [];
     const metadataToBeDeleted = [];
     const metadataToBeAdded = [];
-    const originalMetadataResult = await optixHelper.query(
-        "metadata",
-        { entity_id: entity_id },
-        "get"
-    );
-    if (
-        originalMetadataResult &&
-        originalMetadataResult.status === 200 &&
-        originalMetadataResult.statusText === "OK"
-    ) {
-        const originalMetadata = originalMetadataResult.data;
-        // check fields to delete
-        for (const field in originalMetadataResult.data) {
-            if (!new_metadata.hasOwnProperty(field)) {
-                metadataToBeDeleted.push({
-                    entity_id: entity_id,
-                    name: field,
-                });
-            }
+    let originalMetadataResult = {
+        status: 200,
+        statusText: "OK",
+        data: {}
+    };
+    try {
+        originalMetadataResult = await optixHelper.query(
+            "metadata",
+            { entity_id: entity_id },
+            "get"
+        );
+    } catch(err) {
+        // do nothing
+    }
+
+    const originalMetadata = originalMetadataResult.data;
+    // check fields to delete
+    for (const field in originalMetadataResult.data) {
+        if (!new_metadata.hasOwnProperty(field)) {
+            metadataToBeDeleted.push({
+                entity_id: entity_id,
+                name: field,
+            });
         }
-        await deleteMetadata(metadataToBeDeleted);
-        // check if fields needs to be update
-        for (const field in new_metadata) {
-            if (originalMetadata.hasOwnProperty(field)) {
-                // edit field value
-                if (originalMetadata[field] !== new_metadata[field]) {
-                    metadataToBeUpdated.push({
-                        entity_id: entity_id,
-                        name: field,
-                        value: new_metadata[field],
-                    });
-                }
-            } else {
-                // add field
-                metadataToBeAdded.push({
+    }
+    await deleteMetadata(metadataToBeDeleted);
+    // check if fields needs to be update
+    for (const field in new_metadata) {
+        if (originalMetadata.hasOwnProperty(field)) {
+            // edit field value
+            if (originalMetadata[field] !== new_metadata[field]) {
+                metadataToBeUpdated.push({
                     entity_id: entity_id,
-                    type_id: entity_type_id,
                     name: field,
                     value: new_metadata[field],
                 });
             }
+        } else {
+            // add field
+            metadataToBeAdded.push({
+                entity_id: entity_id,
+                type_id: entity_type_id,
+                name: field,
+                value: new_metadata[field],
+            });
         }
-        await updateMetadata(metadataToBeUpdated);
-        await addMetadata(metadataToBeAdded);
-        return getMetadata(dataset, entity_id);
     }
+    await updateMetadata(metadataToBeUpdated);
+    await addMetadata(metadataToBeAdded);
+    return getMetadata(dataset, entity_id);
 }
 
 /**
