@@ -188,14 +188,26 @@ async function checkUserAccess(user_groups, entity_id) {
     return access;
 }
 
+async function getDatasetInfo(dataset) {
+    const { rows } = await db.query(`SELECT * FROM datasets WHERE name='${dataset}'`);
+    return rows;
+}
+
+// ------------------------------
+
+async function getDatasets() {
+    const { rows } = await db.query(
+        `SELECT *
+        FROM datasets`
+    );
+    return rows;
+}
 
 // ------------------------------
 // ------------------------------
 // ------------------------------
 // ------------------------------
 // ------------------------------
-
-
 
 async function addDataset(entity_id, entity_type_id, name, sensor_type) {
     const id = await getDatasetIdByEntity(entity_type_id, entity_id);
@@ -232,13 +244,6 @@ async function getDatasetIdByEntity(entity_type_id, entity_id) {
     return rows[0].id;
 }
 
-async function getDataset() {
-    const { rows } = await db.query(
-        `SELECT *
-         FROM datasets`
-    );
-    return rows;
-}
 
 async function getDatasetEntityByName(name) {
     const { rows } = await db.query("SELECT * FROM datasets WHERE name = $1", [name]);
@@ -256,8 +261,12 @@ module.exports = {
     removeSensorTypeFromGroup,
     sensorAccessByGroup,
     sensorAccessibleBy,
+    // ------------------------------
+    getDatasets: getDatasets,
+    // ------------------------------
     addDataset: addDataset,
     getDatasetIdByEntity: getDatasetIdByEntity,
     getDatasetIdByName: getDatasetIdByName,
     getDatasetEntityByName: getDatasetEntityByName,
+    getDatasetInfo: getDatasetInfo,
 };
