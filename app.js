@@ -26,9 +26,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 // Authenticator
-const { authenticate, require_admin } = require("./services/auth");
-app.use(authenticate);
-app.use("/groups", require_admin);
+if(config.nodeEnv === "PRODUCTION") {
+    console.log("Enabled production authenticators");
+    const { authenticate, require_admin } = require("./services/auth");
+    app.use(authenticate);
+    app.use("/groups", require_admin);
+}
 
 api(app);
 
