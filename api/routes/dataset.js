@@ -198,7 +198,7 @@ async function chunkifiedTsvDownload(req, res, next) {
         });
 
         // Write column names ahead of any data
-        res.write("dataset\ttimestamp\tsensor value\ttags\taggregateTags\n");
+        res.write("dataset\ttimestamp\tsensor value\ttags\taggregateTags");
 
         // Stop chunking process if the download is interrupted
         let abort = false;
@@ -223,7 +223,8 @@ async function chunkifiedTsvDownload(req, res, next) {
 
             // if there was not an arror with fetching the chunk, write
             // the chunk data to the response
-            if(chunk !== false) res.write(chunk);
+            // also don't write the chunk if it's empty                  VV this newline is to separate metrics
+            if(chunk && chunk !== '' && !/^\s*$/.test(chunk)) res.write("\n" + chunk);
 
             // move chunk start time forwards
             chunk_time = next_chunk_end;
