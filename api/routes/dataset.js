@@ -138,9 +138,10 @@ async function createDataset(req, res, next) {
         const sensorType = req.body.sensor_type;
         const metadata = req.body.metadata || {};
         const group = req.body.group;
-        await datasetHelper.createDataset(dataset, sensors, sensorType, metadata, group);
-        res.status(200).json({
-            status: "success",
+        const {status, message} = await datasetHelper.createDataset(dataset, sensors, sensorType, metadata, group);
+        res.status(status).json({
+            status,
+            message
         });
     } catch (err) {
         if (
@@ -157,10 +158,10 @@ async function createDataset(req, res, next) {
 }
 
 /**
- * Download
+ * Download data from a particular dataset in tsv format. From a particular dataset, a single metric or all metrics can be downloaded.
  * @route GET /dataset/tsvdownload
  * @group dataset
- * @param {string} dataset.required dataset name in the OpenTSDB (required)
+ * @param {string} dataset.required dataset name formatted as either 'dataset.metric' (if data for a single metric is desired) or 'dataset' (if all metrics are desired) (required)
  * @param {string} start_time.required start time of the time range (required)
  * @param {string} end_time end time of the time range (optional)
  * @returns {object} 200 - returns

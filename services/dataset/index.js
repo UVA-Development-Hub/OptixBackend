@@ -114,43 +114,57 @@ async function getTsvData(dataset, chunkStart, chunkEnd) {
  * @param {string} sensors start time(required).
  * @param {string} sensorType sensor type name (required).
  * @param {string} metadata end time (optional).
- * @param {string} group group name where the dataset belongs to (required).
  */
-async function createDataset(dataset, sensors, sensorType, metadata, group) {
-    // set up metric name
-    // check if metric exists
+async function createDataset(dataset, sensors, sensorType, metadata) {
+    async function addMetrics(metrics) {
+        const add_metrics = metrics.map(metric => `${dataset}.${metric}`);
+        // add metric name in opentsdb
+        for (const metricName of add_metrics) {
+            const options = {
+                params: {
+                    metric: metricName,
+                }
+            };
+            await openTSDBAgent.get("assign", options);
+        }
+    }
+
     let result = await search(dataset);
-    if (result.length != 0) {
-        throw "metric already exists.";
+    const datasetExists = result.length != 0;
+    if(datasetExists) {
+        // The dataset already exists. The only thing we need to do is see if there are any new metrics to add.
+        const existingMetrics = result.map(metric => metric.split(".")[1]);
+        const newMetrics = sensors.filter(sensor => existingMetrics.indexOf(sensor) === -1);
+        if(newMetrics.length === 0) return {status: 200, message: "There are no new metrics to add. Nothing has changed."};
+        await addMetrics(newMetrics);
+        return {status: 200, message: `New metrics (${newMetrics.toString()}) added.`};
+    } else {
+        // This is a new dataset. We need to create it.
+        const { entity_id, entity_type_id } = await metadataHelper.create(
+            sensorType,
+            metrics,
+            metadata
+        );
+
+        // create entity
+        // create entity_id and entity_type_id in db
+        const datasetId = await dbHelper.addDataset(
+            entity_id,
+            entity_type_id,
+            dataset,
+            sensorType
+        );
+        if (!datasetId) {
+            return {status: 500, message: "Dataset creation failed."};
+            // throw "failed to create dataset.";
+        }
+
+        await addMetrics(sensors);
+        return {status: 200, message: "Created new dataset and added metrics."};
     }
-    const metrics = sensors.map((sensor) => `${dataset}.${sensor}`);
-    // add metric name in opentsdb
-    for (const metricName of metrics) {
-        const options = {
-            params: {
-                metric: metricName,
-            }
-        };
-        await openTSDBAgent.get("assign", options);
-    }
-    // create entity
-    const { entity_id, entity_type_id } = await metadataHelper.create(
-        sensorType,
-        metrics,
-        metadata
-    );
-    // create entity_id and entity_type_id in db
-    const datasetId = await dbHelper.addDataset(
-        entity_id,
-        entity_type_id,
-        dataset,
-        sensorType
-    );
-    if (!datasetId) {
-        throw "failed to create dataset.";
-    }
-    // add dataset to group in db
-    await userHelper.addDatasetsToGroup([dataset], group);
+
+
+
 }
 
 /**
