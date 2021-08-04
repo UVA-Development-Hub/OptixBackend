@@ -122,9 +122,15 @@ async function search(req, res, next) {
 
         const accessible_datasets = datasets.filter((_, i) => filter_vals[i]);
         console.log(accessible_datasets);
+
+        const accessible_metrics = result.filter(metric => {
+            const dsName = metric.substring(0, metric.indexOf("."));
+            return accessible_datasets.indexOf(dsName) > -1;
+        });
+
         res.status(200).json({
             status: "success",
-            data: accessible_datasets,
+            data: accessible_metrics,
         });
     } catch (err) {
         if (
