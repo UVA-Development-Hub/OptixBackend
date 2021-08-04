@@ -175,8 +175,8 @@ async function sensorAccessibleBy(entity_id) {
 }
 
 async function checkUserAccess(user_groups, entity_id) {
-    const accessing_groups = await sensorAccessibleBy(entity_id);
-
+    const { success, groups: accessing_groups } = await sensorAccessibleBy(entity_id);
+    if(!success) return false;
     let access = false;
     for(let i = 0; i < accessing_groups.length; i++) {
         if(user_groups.indexOf(accessing_groups[i]) > -1) {
@@ -261,6 +261,7 @@ module.exports = {
     removeSensorTypeFromGroup,
     sensorAccessByGroup,
     sensorAccessibleBy,
+    checkUserAccess,
     // ------------------------------
     getDatasets: getDatasets,
     // ------------------------------

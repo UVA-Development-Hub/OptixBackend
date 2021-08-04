@@ -28,9 +28,10 @@ app.use(express.static(path.join(__dirname, "public")));
 // Authenticator
 if(config.nodeEnv === "PRODUCTION") {
     console.log("Enabled production authenticators");
-    const { authenticate, require_admin } = require("./services/auth");
+    const { authenticate, require_admin, dataset_permission_check } = require("./services/auth");
     app.use(authenticate);
     app.use("/groups", require_admin);
+    app.use("/dataset", dataset_permission_check);
 }
 
 api(app);

@@ -51,9 +51,35 @@ function require_admin(req, res, next) {
     }
 }
 
-function verify_sensor_access(req, res, next) {
+async function dataset_permission_check(req, res, next) {
     try {
-        
+        // All requests are authenticated at this point,
+        // so we definitely have user data in req.user
+
+        // ----------------------------------------------
+        // TODO: handle the PUT request??
+        // If this is the PUT /dataset, the user needs
+        // to be in the following group: admin_group_crud
+        // ----------------------------------------------
+
+        // The dataset search method works outside the realm
+        // of this check... :)
+        console.log("permission check engaged");
+        if(req._parsedUrl.pathname === "/dataset/search") {
+            console.log("exempted");
+            next();
+            return;
+        }
+
+        const { getDatasetInfo, checkUserAccess } = require("../db");
+
+        const { entity_id } = await getDatasetInfo(req.query.dataset);
+        const accessible = await checkUserAccess(req.user["cognito:groups"], entity_id);
+
+        if(accessible) next();
+        else res.status(403).send({
+            message: "dataset inaccessible"
+        });
     } catch(err) {
         console.log("Unexpected failure in verification of sensor access");
         res.status(500).send({
@@ -64,5 +90,6 @@ function verify_sensor_access(req, res, next) {
 
 module.exports = {
     authenticate,
-    require_admin
+    require_admin,
+    dataset_permission_check
 }
