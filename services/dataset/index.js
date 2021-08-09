@@ -31,9 +31,10 @@ async function getDataset(dataset, startTime, endTime, timezone, tags) {
     const data = [];
     for(const metric of metrics) {
         function toUTC(time) {
+            if(/^\d+$/.test(time)) return time;
             return DateTime.fromFormat(time, "yyyy/MM/dd HH:mm:ss", {
                 zone: timezone
-            }).setZone("UTC").toFormat("yyyy/MM/dd HH:mm:ss");
+            }).setZone("UTC").toFormat("x");
         }
         const result = await optixHelper.query(
             "timeseries",
