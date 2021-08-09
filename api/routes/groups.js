@@ -18,7 +18,7 @@ async function getGroups(req, res) {
         const result = await cognitoHelper.getGroups();
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({
             success: false,
             message: "failed to retrieve groups",
@@ -41,7 +41,7 @@ async function addUserToGroup(req, res) {
         const result = await cognitoHelper.addUserToGroup(req.body.username, req.body.groupname);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({message: "failed to add user to group", error: err});
     }
 }
@@ -60,7 +60,7 @@ async function removeUserFromGroup(req, res) {
         const result = await cognitoHelper.removeUserFromGroup(req.body.username, req.body.groupname);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({message: "failed to remove user from group", error: err});
     }
 }
@@ -78,7 +78,7 @@ async function getUserGroupMembership(req, res) {
         const result = await cognitoHelper.getGroupMembership(req.query.username);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({
             success: false,
             message: "failed to get group membership for user",
@@ -107,7 +107,7 @@ async function getSensors(req, res) {
         const result = await dbHelper.getSensors();
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({message: "failed to retrieve sensor list", error: err});
     }
 }
@@ -126,7 +126,7 @@ async function addSensorToGroup(req, res) {
         const result = await dbHelper.addSensorToGroup(req.body.entity_id, req.body.groupname);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({message: "failed to add sensor to group", error: err});
     }
 }
@@ -145,7 +145,7 @@ async function addSensorTypeToGroup(req, res) {
         const result = await dbHelper.addSensorTypeToGroup(req.body.entity_type, req.body.groupname);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({
             message: "failed to add sensor type to group",
             error: err
@@ -167,7 +167,7 @@ async function removeSensorFromGroup(req, res) {
         const result = await dbHelper.removeSensorFromGroup(req.body.entity_id, req.body.groupname);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({message: "failed to remove sensor from group", error: err});
     }
 }
@@ -186,7 +186,7 @@ async function removeSensorTypeFromGroup(req, res) {
         const result = await dbHelper.removeSensorTypeFromGroup(req.body.entity_type, req.body.groupname);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({
             message: "failed to add sensor type to group",
             error: err
@@ -207,7 +207,7 @@ async function getSensorAccessByGroup(req, res) {
         const result = await dbHelper.sensorAccessByGroup(req.query.groupname);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({message: "failed to retrieve accessible sensors for group", error: err});
     }
 }
@@ -225,8 +225,18 @@ async function getGroupsForSensor(req, res) {
         const result = await dbHelper.sensorAccessibleBy(req.query.entity_id);
         res.status(200).send(result);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.status(500).send({message: "failed to retrieve accessing groups for sensor", error: err});
+    }
+}
+
+async function getGroupMetadata(req, res) {
+    try {
+        const result = await cognitoHelper.getGroupMetadata(req.query.groupname);
+        res.status(200).send(result);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send({message: "failed to retrieve metadata for group", error: err});
     }
 }
 
@@ -248,4 +258,6 @@ module.exports = app => {
 
     app.get("/groups/access/group", getSensorAccessByGroup);
     app.get("/groups/access/sensor", getGroupsForSensor);
+
+    app.get("/groups/get", getGroupMetadata);
 };

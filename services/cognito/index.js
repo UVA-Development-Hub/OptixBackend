@@ -29,7 +29,7 @@ async function getGroups() {
             return {
                 success: false,
                 groups: []
-            }
+            };
         }
 
         // Not all group fields are necessary. This only passes on
@@ -45,7 +45,7 @@ async function getGroups() {
             success: false,
             groups: [],
             error: err
-        }
+        };
     }
 }
 
@@ -60,18 +60,15 @@ async function addUserToGroup(user, group) {
         const response = await cognitoClient.send(command);
         if(response["$metadata"].httpStatusCode !== 200) {
             console.log("add user to group failed", response);
-            return {
-                success: false,
-                error: "failed with code " + response["$metadata"].httpStatusCode
-            }
+            return {success: false, error: "failed with code " + response["$metadata"].httpStatusCode};
         }
-        return { success: true }
+        return { success: true };
     } catch(err) {
         console.log(err);
         return {
             success: false,
             error: err
-        }
+        };
     }
     return false;
 }
@@ -87,15 +84,15 @@ async function removeUserFromGroup(user, group) {
         const response = await cognitoClient.send(command);
         if(response["$metadata"].httpStatusCode !== 200) {
             console.log("remove user from group failed", response);
-            return {success: false, error: "failed with code " + response["$metadata"].httpStatusCode}
+            return {success: false, error: "failed with code " + response["$metadata"].httpStatusCode};
         }
-        return { success: true }
+        return { success: true };
     } catch(err) {
         console.log(err);
         return {
             success: false,
             error: err
-        }
+        };
     }
 }
 
@@ -109,19 +106,46 @@ async function getGroupMembership(user) {
         const response = await cognitoClient.send(command);
         if(response["$metadata"].httpStatusCode !== 200) {
             console.log("list group membership failed", response);
-            return {success: false, error: "failed with code " + response["$metadata"].httpStatusCode}
+            return {success: false, error: "failed with code " + response["$metadata"].httpStatusCode};
         }
 
         return {
             success: true,
             groups: response.Groups.map(ReduceGroupData)
-        }
+        };
     } catch(err) {
         console.log(err);
         return {
             success: false,
             error: err
+        };
+    }
+}
+
+async function getGroupMetadata(group) {
+    try {
+        const command = new libCognito.GetGroupCommand({
+            GroupName: group,
+            UserPoolId: userPoolId
+        });
+
+        const response = await cognitoClient.send(command);
+        if(response["$metadata"].httpStatusCode !== 200) {
+            console.log("failed to get group data", response);
+            return {success: false, error: "failed with code " + response["$metadata"].httpStatusCode};
         }
+
+        console.log(response);
+        return {
+            success: true,
+            group: response.Group
+        };
+    } catch(err) {
+        console.log(err);
+        return {
+            success: false,
+            error: err
+        };
     }
 }
 
@@ -130,4 +154,5 @@ module.exports = {
     addUserToGroup,
     removeUserFromGroup,
     getGroupMembership,
+    getGroupMetadata,
 }
