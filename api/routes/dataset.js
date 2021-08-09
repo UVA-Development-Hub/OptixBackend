@@ -121,7 +121,6 @@ async function search(req, res, next) {
         );
 
         const accessible_datasets = datasets.filter((_, i) => filter_vals[i]);
-        console.log(accessible_datasets);
 
         const accessible_metrics = result.filter(metric => {
             const dsName = metric.substring(0, metric.indexOf("."));
@@ -131,6 +130,7 @@ async function search(req, res, next) {
         res.status(200).json({
             status: "success",
             data: accessible_metrics,
+            accessibleDatasets: accessible_datasets
         });
     } catch (err) {
         if (
