@@ -34,7 +34,6 @@ async function getGroups() {
 
         // Not all group fields are necessary. This only passes on
         // the ones which have strong potential to be useful.
-        console.log(response.Groups);
         return {
             success: true,
             groups: response.Groups.map(ReduceGroupData)
@@ -123,6 +122,10 @@ async function getGroupMembership(user) {
 }
 
 async function getGroupMetadata(group) {
+    if(!group) return {
+        success: true,
+        group: {}
+    };
     try {
         const command = new libCognito.GetGroupCommand({
             GroupName: group,
@@ -135,7 +138,6 @@ async function getGroupMetadata(group) {
             return {success: false, error: "failed with code " + response["$metadata"].httpStatusCode};
         }
 
-        console.log(response);
         return {
             success: true,
             group: response.Group
