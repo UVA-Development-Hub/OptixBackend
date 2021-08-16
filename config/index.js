@@ -18,11 +18,10 @@ module.exports = {
     cognito: {
         region: process.env.COGNITO_REGION,
         poolId: process.env.COGNITO_POOL_ID,
-        baseUrl: process.env.COGNITO_BASEURL,
-        timeout: process.env.COGNITO_TIMEOUT,
-        auth: process.env.COGNITO_AUTH,
-        clientId: process.env.COGNITO_CLIENT_ID,
-        redirectUri: process.env.COGNITO_REDIRECT_URI,
+    },
+    aws: {
+        access_key_id: process.env.AWS_ACCESS_KEY_ID,
+        secret_key: process.env.AWS_SECRET_ACCESS_KEY,
     },
     psql: {
         user: process.env.DB_USER,

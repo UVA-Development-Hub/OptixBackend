@@ -1,13 +1,11 @@
-const { cognito: config } = require("../../config");
+const { cognito, aws } = require("../../config");
 const libCognito = require("@aws-sdk/client-cognito-identity-provider");
 
-// TODO: implement the credential import & check how
-// this is done in older site + remote versions!
-// const cpn = require("@aws-sdk/credential-provider-node");
-
-const userPoolId = config.region + "_" + config.poolId;
+const userPoolId = cognito.region + "_" + cognito.poolId;
 const cognitoClient = new libCognito.CognitoIdentityProviderClient({
-    region: config.region,
+    region: cognito.region,
+    accessKeyId: aws.access_key_id,
+    secretAccessKey: aws.secret_key,
 });
 
 
