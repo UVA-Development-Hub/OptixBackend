@@ -1,8 +1,15 @@
 const { cognito: config } = require("../../config");
 const libCognito = require("@aws-sdk/client-cognito-identity-provider");
-const cognitoClient = new libCognito.CognitoIdentityProviderClient({region: config.region});
+
+// TODO: implement the credential import & check how
+// this is done in older site + remote versions!
+// const cpn = require("@aws-sdk/credential-provider-node");
 
 const userPoolId = config.region + "_" + config.poolId;
+const cognitoClient = new libCognito.CognitoIdentityProviderClient({
+    region: config.region,
+});
+
 
 function ReduceGroupData(group) {
     return {
@@ -18,7 +25,7 @@ async function getGroups() {
     try {
         // Create cognito command to list groups
         const command = new libCognito.ListGroupsCommand({
-            UserPoolId: userPoolId
+            UserPoolId: userPoolId,
         });
 
         // Send the command to the cognito client, and return a
@@ -51,9 +58,9 @@ async function getGroups() {
 async function addUserToGroup(user, group) {
     try {
         const command = new libCognito.AdminAddUserToGroupCommand({
+            UserPoolId: userPoolId,
             GroupName: group,
-            Username: user,
-            UserPoolId: userPoolId
+            Username: user
         });
 
         const response = await cognitoClient.send(command);
@@ -75,9 +82,9 @@ async function addUserToGroup(user, group) {
 async function removeUserFromGroup(user, group) {
     try {
         const command = new libCognito.AdminRemoveUserFromGroupCommand({
+            UserPoolId: userPoolId,
             GroupName: group,
-            Username: user,
-            UserPoolId: userPoolId
+            Username: user
         });
 
         const response = await cognitoClient.send(command);
@@ -98,8 +105,8 @@ async function removeUserFromGroup(user, group) {
 async function getGroupMembership(user) {
     try {
         const command = new libCognito.AdminListGroupsForUserCommand({
-            Username: user,
-            UserPoolId: userPoolId
+            UserPoolId: userPoolId,
+            Username: user
         });
 
         const response = await cognitoClient.send(command);
@@ -128,8 +135,8 @@ async function getGroupMetadata(group) {
     };
     try {
         const command = new libCognito.GetGroupCommand({
-            GroupName: group,
-            UserPoolId: userPoolId
+            UserPoolId: userPoolId,
+            GroupName: group
         });
 
         const response = await cognitoClient.send(command);
