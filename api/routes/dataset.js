@@ -109,18 +109,22 @@ async function search(req, res, next) {
             ));
 
         const userGroups = req.user["cognito:groups"];
-        const filter_vals = await Promise.all(
-            datasets.map(async dataset => {
-                const { getDatasetInfo, checkUserAccess } = require("../../services/db");
-                const dsInfo = await getDatasetInfo(dataset);
-                if(dsInfo && dsInfo.length > 0) var { entity_id } = dsInfo[0];
-                else return false;
-                const accessible = await checkUserAccess(userGroups, entity_id);
-                return accessible;
-            })
-        );
+        if(userGroups.indexOf("admin_allow_all") > -1) {
+            var accessible_datasets = datasets;
+        } else {
+            const filter_vals = await Promise.all(
+                datasets.map(async dataset => {
+                    const { getDatasetInfo, checkUserAccess } = require("../../services/db");
+                    const dsInfo = await getDatasetInfo(dataset);
+                    if(dsInfo && dsInfo.length > 0) var { entity_id } = dsInfo[0];
+                    else return false;
+                    const accessible = await checkUserAccess(userGroups, entity_id);
+                    return accessible;
+                })
+            );
 
-        const accessible_datasets = datasets.filter((_, i) => filter_vals[i]);
+            var accessible_datasets = datasets.filter((_, i) => filter_vals[i]);
+        }
 
         const accessible_metrics = result.filter(metric => {
             const dsName = metric.substring(0, metric.indexOf("."));

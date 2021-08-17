@@ -35,7 +35,7 @@ if(config.nodeEnv === "PRODUCTION") {
 } else {
     // Outside of production, each request is assigned a user
     // variable with access to every group in the system
-    const { getGroups } = require("services/cognito");
+    const { getGroups } = require("./services/cognito");
     getGroups().then(allGroups => {
         app.use((req, res, next) => {
             req.user = {
