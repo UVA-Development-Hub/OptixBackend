@@ -114,11 +114,20 @@ async function removeSensorTypeFromGroup(entity_type_id, group) {
 
 async function sensorAccessByGroup(group) {
     try {
-        // List of sensors accessible directly
-        const { rows: direct_access } = await db.query(`SELECT datasets.* FROM datasets INNER JOIN group_dataset ON datasets.id=group_dataset.dataset_id WHERE group_name='${group}' ORDER BY datasets.id ASC`);
 
-        // List of sensors accessible through type access
-        const { rows: type_access } = await db.query(`SELECT datasets.* from datasets INNER JOIN group_dataset_type ON datasets.entity_type_id=group_dataset_type.entity_type WHERE group_Name='${group}' ORDER BY datasets.id ASC`);
+        // This group overrides all other permission
+        // roles and grants access to everything
+        if(group === "admin_allow_all") {
+            var direct_access = await db.query(`select name from datasets;`);
+            var type_access = [];
+        } else {
+            // List of sensors accessible directly
+            var { rows: direct_access } = await db.query(`SELECT datasets.* FROM datasets INNER JOIN group_dataset ON datasets.id=group_dataset.dataset_id WHERE group_name='${group}' ORDER BY datasets.id ASC`);
+
+            // List of sensors accessible through type access
+            var { rows: type_access } = await db.query(`SELECT datasets.* from datasets INNER JOIN group_dataset_type ON datasets.entity_type_id=group_dataset_type.entity_type WHERE group_Name='${group}' ORDER BY datasets.id ASC`);
+        }
+
 
         const accessible = Array.from(
             new Set(direct_access.concat(type_access))
