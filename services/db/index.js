@@ -118,7 +118,7 @@ async function sensorAccessByGroup(group) {
         // This group overrides all other permission
         // roles and grants access to everything
         if(group === "admin_allow_all") {
-            var direct_access = await db.query(`select name from datasets;`);
+            var { rows: direct_access } = await db.query(`select name from datasets;`);
             var type_access = [];
         } else {
             // List of sensors accessible directly
