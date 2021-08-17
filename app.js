@@ -39,7 +39,7 @@ if(config.nodeEnv === "PRODUCTION") {
     getGroups().then(allGroups => {
         app.use((req, res, next) => {
             req.user = {
-                "cognito:groups": allGroups.map(({ GroupName }) => GroupName);
+                "cognito:groups": allGroups.map(({ GroupName }) => GroupName)
             };
             next();
         });
