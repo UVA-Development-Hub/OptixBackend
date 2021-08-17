@@ -20,6 +20,7 @@ function unauthorized(res, message) {
 // a valid access token.
 function authenticate(req, res, next) {
     try {
+        if(req._parsedUrl.pathname === "/") next();
         if(!req.headers) unauthorized(res);
         CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
             req.user = authenticated_user;

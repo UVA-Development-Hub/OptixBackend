@@ -48,6 +48,10 @@ if(config.nodeEnv === "PRODUCTION") {
 
 api(app);
 
+app.use("/", (req, res) => {
+    res.send("Hey, the backend server is alive!");
+});
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next(createError(404));
