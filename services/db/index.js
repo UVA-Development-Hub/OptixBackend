@@ -138,7 +138,7 @@ async function sensorAccessByGroup(group) {
             accessible
         }
     } catch(err) {
-        console.log(err)
+        console.error(err)
         return {
             success: false,
             error: err

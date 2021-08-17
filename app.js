@@ -32,6 +32,18 @@ if(config.nodeEnv === "PRODUCTION") {
     app.use(authenticate);
     app.use("/groups", require_admin);
     app.use("/dataset", dataset_permission_check);
+} else {
+    // Outside of production, each request is assigned a user
+    // variable with access to every group in the system
+    const { getGroups } = require("services/cognito");
+    getGroups().then(allGroups => {
+        app.use((req, res, next) => {
+            req.user = {
+                "cognito:groups": allGroups.map(({ GroupName }) => GroupName);
+            };
+            next();
+        });
+    });
 }
 
 api(app);
