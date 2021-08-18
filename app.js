@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Authenticator
 if(config.nodeEnv === "PRODUCTION") {
-    console.log("Enabled production authenticators");
+    console.debug("Enabled production authenticators");
     const { authenticate, require_admin, dataset_permission_check } = require("./services/auth");
     app.use(authenticate);
     app.use("/groups", require_admin);
@@ -35,14 +35,19 @@ if(config.nodeEnv === "PRODUCTION") {
 } else {
     // Outside of production, each request is assigned a user
     // variable with access to every group in the system
+    console.warn("Using production authentiator (INSECURE)");
     const { getGroups } = require("./services/cognito");
-    getGroups().then(allGroups => {
-        app.use((req, res, next) => {
-            req.user = {
-                "cognito:groups": allGroups.map(({ GroupName }) => GroupName)
-            };
-            next();
+    var allGroups = [];
+    getGroups()
+        .then(({success, groups}) => {
+            if(success) allGroups = groups;
         });
+
+    app.use((req, res, next) => {
+        req.user = {
+            "cognito:groups": allGroups.map(({ GroupName }) => GroupName)
+        };
+        next();
     });
 }
 
