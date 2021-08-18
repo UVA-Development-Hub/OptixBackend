@@ -1,6 +1,7 @@
 const moment = require('moment');
 const datasetHelper = require("../../services/dataset");
 const createError = require("http-errors");
+const { getDatasetInfo, checkUserAccess } = require("../../services/db");
 
 const { DateTime } = require("luxon");
 
@@ -114,7 +115,6 @@ async function search(req, res, next) {
         } else {
             const filter_vals = await Promise.all(
                 datasets.map(async dataset => {
-                    const { getDatasetInfo, checkUserAccess } = require("../../services/db");
                     const dsInfo = await getDatasetInfo(dataset);
                     if(dsInfo && dsInfo.length > 0) var { entity_id } = dsInfo[0];
                     else return false;
@@ -279,10 +279,27 @@ async function chunkifiedTsvDownload(req, res, next) {
     }
 }
 
+
+async function getDatasetMetadata(req, res) {
+    try {
+        const dsInfo = await getDatasetInfo(req.query.dataset);
+        res.status(200).send({
+            success: true,
+            info: dsInfo[0] || {}
+        });
+    } catch(err) {
+        res.status(500).send({
+            success: false,
+            message: "failed to get dataset info"
+        });
+    }
+}
+
 module.exports = (app) => {
     app.get("/dataset", getDataset);
     app.put("/dataset", createDataset);
     app.get("/dataset/download", download);
     app.get("/dataset/search", search);
     app.get("/dataset/tsvdownload", chunkifiedTsvDownload);
+    app.get("/dataset/info", getDatasetMetadata);
 };
