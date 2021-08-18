@@ -77,7 +77,7 @@ async function dataset_permission_check(req, res, next) {
 
         const { getDatasetInfo, checkUserAccess } = require("../db");
 
-        const { entity_id } = await getDatasetInfo(req.query.dataset);
+        const [{ entity_id }] = await getDatasetInfo(req.query.dataset);
         const accessible = await checkUserAccess(req.user["cognito:groups"], entity_id);
 
         if(accessible) next();
