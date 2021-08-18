@@ -77,8 +77,10 @@ async function dataset_permission_check(req, res, next) {
 
         const { getDatasetInfo, checkUserAccess } = require("../db");
 
-        const [{ entity_id }] = await getDatasetInfo(req.query.dataset);
-        const accessible = await checkUserAccess(req.user["cognito:groups"], entity_id);
+        const [ entry ] = await getDatasetInfo(req.query.dataset);
+
+        const accessible = req.user["cognito:groups"].indexOf("admin_allow_all") > -1 ? true
+            : entry ? await checkUserAccess(req.user["cognito:groups"], entry.entity_id) : false;
 
         if(accessible) next();
         else res.status(403).send({
@@ -86,6 +88,7 @@ async function dataset_permission_check(req, res, next) {
         });
     } catch(err) {
         console.log("Unexpected failure in verification of sensor access");
+        console.log(err);
         res.status(500).send({
             message: "admin sensor access verification failed"
         });
