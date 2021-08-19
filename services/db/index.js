@@ -45,7 +45,7 @@ async function addSensorToGroup(entity_id, group) {
             }
         }
 
-        const response = await db.query(`INSERT INTO group_dataset VALUES ('${dataset_id}', '${group}')`);
+        const response = await db.query(`INSERT INTO group_dataset(dataset_id, group_name) VALUES ('${dataset_id}', '${group}')`);
         return {
             success: response.rowCount === 1,
             databaseChanged: response.rowCount !== 0
@@ -61,7 +61,7 @@ async function addSensorToGroup(entity_id, group) {
 
 async function addSensorTypeToGroup(entity_type_id, group) {
     try {
-        const response = await db.query(`INSERT INTO group_dataset_type VALUES ('${group}', '${entity_type_id}')`);
+        const response = await db.query(`INSERT INTO group_dataset_type(group_name, entity_type) VALUES ('${group}', '${entity_type_id}')`);
         return {
             success: response.rowCount === 1,
             databaseChanged: response.rowCount !== 0
