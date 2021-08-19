@@ -68,9 +68,7 @@ async function dataset_permission_check(req, res, next) {
 
         // The dataset search method works outside the realm
         // of this check... :)
-        console.log("permission check engaged");
         if(req._parsedUrl.pathname === "/dataset/search") {
-            console.log("exempted");
             next();
             return;
         }
