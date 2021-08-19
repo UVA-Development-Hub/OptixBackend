@@ -217,7 +217,7 @@ async function getSensorAccessByGroup(req, res) {
  * @route GET /groups/access/sensor
  * @group groups
  * @param {string} entity_id.required entity_id of the sensor (dataset) that should be checked
- * @returns {object} 200 - object containing a boolean success value and a groups
+ * @returns {object} 200 - object containing a boolean success value and a list of groups
  * @returns {Error} default - Unexpected error
 */
 async function getGroupsForSensor(req, res) {
@@ -230,6 +230,14 @@ async function getGroupsForSensor(req, res) {
     }
 }
 
+/**
+ * Retrieve metadata about a group
+ * @route GET /groups/get
+ * @group groups
+ * @param {string} groupname.required name of the group to get metadata for
+ * @returns {object} 200 - object containing a boolean success value and an info object containing the group metadata
+ * @returns {Error} default - Unexpected error
+*/
 async function getGroupMetadata(req, res) {
     try {
         const result = await cognitoHelper.getGroupMetadata(req.query.groupname);
