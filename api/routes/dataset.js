@@ -157,7 +157,6 @@ async function search(req, res, next) {
  * @param {string} dataset.required dataset name in the OpenTSDB (required).
  * @param {[string]} sensors.required sensors of the new dataset (requried).
  * @param {string} sensor_type.required sensor type name (required).
- * @param {string} group.required group name where the dataset belongs to (required).
  * @param {object} metadata metadata of the dataset in json format (optional).
  * @returns {[string]} 200
  * @returns {Error} default - Unexpected error
@@ -168,8 +167,7 @@ async function createDataset(req, res, next) {
         const sensors = req.body.sensors;
         const sensorType = req.body.sensor_type;
         const metadata = req.body.metadata || {};
-        const group = req.body.group;
-        const {status, message} = await datasetHelper.createDataset(dataset, sensors, sensorType, metadata, group);
+        const {status, message} = await datasetHelper.createDataset(dataset, sensors, sensorType, metadata, "");
         res.status(status).json({
             status,
             message

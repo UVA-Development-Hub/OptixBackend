@@ -141,6 +141,7 @@ async function createDataset(dataset, sensors, sensorType, metadata) {
         return {status: 200, message: `New metrics (${newMetrics.toString()}) added.`};
     } else {
         // This is a new dataset. We need to create it.
+        const metrics = sensors.map(sensor => `${dataset}.${sensor}`);
         const { entity_id, entity_type_id } = await metadataHelper.create(
             sensorType,
             metrics,
