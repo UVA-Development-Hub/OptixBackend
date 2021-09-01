@@ -8,6 +8,8 @@ const CognitoExpress = new (require("cognito-express"))({
 
 const NeedsAdmin = "this endpoint requires admin access. ensure the access token provided in the access-control-token header is valid and that its owner has membership in the admin_group_crud group";
 const NeedsApprovedUser = "a valid access-control-token was provided, but the user must be approved before accessing endpoints";
+const NoUser = "invalid or expired access-control-token provided";
+const AuthException = "unexpected exception during authentication prevented validation of the presented token";
 
 function unauthorized(res, message) {
     res.status(401).send({
@@ -26,10 +28,13 @@ function authenticate(req, res, next) {
         }
         if(!req.headers) unauthorized(res);
         CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
-            console.log(authenticated_user);
+            if(!authenticated_user) {
+                unauthorized(res, NoUser);
+                return;
+            }
             if(!authenticated_user["cognito:groups"]) authenticated_user = [];
             req.user = authenticated_user;
-            if(err) unauthorized(res);
+            if(err) unauthorized(res, AuthException);
             else if(req.user["cognito:groups"].indexOf("approved") === -1) unauthorized(res, NeedsApprovedUser);
             else next();
         });

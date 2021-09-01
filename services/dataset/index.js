@@ -164,9 +164,6 @@ async function createDataset(dataset, sensors, sensorType, metadata) {
         await addMetrics(sensors);
         return {status: 200, message: "Created new dataset and added metrics."};
     }
-
-
-
 }
 
 /**
