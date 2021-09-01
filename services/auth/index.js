@@ -26,6 +26,7 @@ function authenticate(req, res, next) {
         }
         if(!req.headers) unauthorized(res);
         CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
+            console.log(authenticated_user);
             if(!authenticated_user["cognito:groups"]) authenticated_user = [];
             req.user = authenticated_user;
             if(err) unauthorized(res);
