@@ -111,7 +111,13 @@ async function search(req, res, next) {
 
         const userGroups = req.user["cognito:groups"];
         if(userGroups.indexOf("admin_allow_all") > -1) {
-            var accessible_datasets = datasets;
+            // Simply go through and take the datasets which exist in the db
+            var accessible_datasets = [];
+            for(let i = 0; i < datasets.length; i++) {
+                const dsInfo = await getDatasetInfo(datasets[i]);
+                if(!dsInfo || dsInfo.length === 0) continue;
+                accessible_datasets.push(datasets[i]);
+            }
         } else {
             const filter_vals = await Promise.all(
                 datasets.map(async dataset => {
