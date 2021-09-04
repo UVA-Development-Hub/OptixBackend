@@ -38,7 +38,7 @@ function authenticate(req, res, next) {
 
         // TSV downloa requests have their authentication
         // sent in via query string argument
-        if (req.parsedUrl.pathname === "/dataset/tsvdownload") {
+        if (req._parsedUrl.pathname === "/dataset/tsvdownload") {
             Object.assign(req.headers, {
                 "access-control-token": req.query["access-control-token"]
             });
