@@ -22,11 +22,27 @@ function unauthorized(res, message) {
 // a valid access token.
 function authenticate(req, res, next) {
     try {
+        // Send through requests to the base url
+        // to support basic check-if-alive pings
         if(req._parsedUrl.pathname === "/") {
             next();
             return;
         }
-        if(!req.headers) unauthorized(res);
+
+        // If there are no provided headers,
+        // immediately deny the request
+        if(!req.headers) {
+            unauthorized(res);
+            return;
+        }
+
+        // TSV downloa requests have their authentication
+        // sent in via query string argument
+        if (req.parsedUrl.pathname === "/dataset/tsvdownload") {
+            Object.assign(req.headers, {
+                "access-control-token": req.query["access-control-token"]
+            });
+        }
         CognitoExpress.validate(req.headers["access-control-token"], (err, authenticated_user) => {
             if(!authenticated_user) {
                 unauthorized(res, NoUser);
