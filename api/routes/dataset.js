@@ -243,9 +243,7 @@ async function chunkifiedTsvDownload(req, res, next) {
         res.on("close", cancelDownload);
 
         // Break the request into 10m chunks
-        while(chunk_time.isBefore(chunk_end)) {
-            if(abort) break;
-
+        while(!abort && chunk_time.isBefore(chunk_end)) {
             // Compute the current chunk boundary
             let next_chunk_end = moment(chunk_time)
                 .seconds(chunk_time.seconds() + 600);
