@@ -1,13 +1,14 @@
 const fs = require("fs-extra");
 const path = require("path");
-const axios = require("axios");
 const moment = require("moment");
 const optixHelper = require("../optix");
 const metadataHelper = require("../metadata");
 const userHelper = require("../user");
-const dbHelper = require("../db");
-const config = require("../../config");
 
+
+const axios = require("axios");
+const config = require("../../config");
+const { v2: dbHelper } = require("../db");
 const { DateTime } = require("luxon");
 
 // agent for query openTSDB endpoint
@@ -15,6 +16,150 @@ const openTSDBAgent = axios.create({
     baseURL: config.opentsdb.url,
     timeout: 0,
 });
+
+//
+//
+//
+//
+//
+
+async function getDataFromApp(app_id, startTime, endTime, timezone, metric, tags) {
+    try {
+        var metrics;
+        if(metric !== "") metrics = [metric];
+        else {
+            const metricsQuery = dbHelper.getAppMetrics(app_id);
+            if(metricsQuery.err)
+            throw metricsQuery.err;
+            metrics = metricsQuery.metrics;
+        }
+        console.debug("list of queried metrics:");
+        console.debug(metrics);
+
+        function toUTC(time) {
+            if(/^\d+$/.test(time)) return time;
+            return DateTime.fromFormat(time, "yyyy/MM/dd HH:mm:ss", {
+                zone: timezone
+            }).setZone("UTC").toFormat("x");
+        }
+
+        const data = {};
+        for(const metric of metrics) {
+            const queryResult = await optixHelper.query(
+                "timeseries",
+                {
+                    metric: metric,
+                    start_time: toUTC(startTime),
+                    end_time: endTime ? toUTC(endTime) : endTime,
+                    tags: tags
+                },
+                "get"
+            );
+            if(queryResult.data.length > 0) {
+                data[metric] = queryResult.data[0];
+            }
+        }
+        return {
+            data
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+// Helper function for the main TSV downloading function
+async function getTsvData(dataset, chunkStart, chunkEnd, timezone, metric, tags) {
+    startTime = chunkStart.format("YYYY/MM/DD HH:mm:ss");
+    endTime = chunkEnd.format("YYYY/MM/DD HH:mm:ss");
+
+    try {
+        const chunk_data =
+            await getDataFromApp(
+                dataset,
+                startTime,
+                endTime,
+                timezone,
+                metric,
+                tags
+            );
+            const tsv_data = chunk_data.map(({metric, tags, aggregateTags, dps}) =>
+                Object.entries(dps).map(([epoch_time, value]) =>
+                `${metric}\t${epoch_time}\t${value}\t${JSON.stringify(tags)}\t[${aggregateTags.toString()}]`
+            ).join("\n")
+        ).join("\n");
+        return tsv_data;
+    } catch(err) { return false; }
+}
+
+/**
+ * Download data from a particular dataset in tsv format. From a particular dataset, a single metric or all metrics can be downloaded.
+ * @route GET /dataset/tsvdownload
+ * @group dataset
+ * @param {string} dataset.required dataset name formatted as either 'dataset.metric' (if data for a single metric is desired) or 'dataset' (if all metrics are desired) (required)
+ * @param {string} start_time.required start time of the time range (required)
+ * @param {string} end_time end time of the time range (optional)
+ * @param {string} timezone optionally provide the timezones the provided times are relative to. defaults to EST/EDT
+ * @param {string} metric optionally provide a metric to request data for. if not provided, all metrics are retrieved
+ * @param {object} tags optionally provide an object of tag key/value pairs to filter on
+ * @returns {object} 200 - returns
+ * @returns {Error} default - Unexpected error
+ */
+async function* downloadTSVData(app_id, start_time, end_time, timezone, metric, tags) {
+    try {
+        function toUTC(time) {
+            if(/^\d+$/.test(time)) return time;
+            return DateTime.fromFormat(time, "yyyy/MM/dd HH:mm:ss", {
+                zone: timezone
+            }).setZone("UTC").toFormat("x");
+        }
+
+        let chunk_time = moment(toUTC(start_time));
+        let chunk_end = end_time ? moment(toUTC(endTime)) : moment();
+        const filename = `${app_id}.${chunk_time.format("x")}.${chunk_end.format("x")}.tsv}`;
+        yield filename;
+
+        // Break the request into 30m chunks
+        while(chunk_time.isBefore(chunk_end)) {
+            // Compute the current chunk boundary
+            let next_chunk_end = moment(chunk_time)
+                .seconds(chunk_time.seconds() + 1800);
+
+            // request tsv data for the current chunk
+            let chunk =
+                await getTsvData(
+                    dataset,
+                    chunk_time,
+                    next_chunk_end,
+                    timezone,
+                    metric,
+                    tags
+                );
+
+            // if there was not an arror with fetching the chunk, write
+            // the chunk data to the response
+            // also don't write the chunk if it's empty
+            if(chunk && chunk !== '' && !/^\s*$/.test(chunk)) yield chunk;
+
+            // move chunk start time forwards
+            chunk_time = next_chunk_end;
+        }
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+
+//
+//
+//
+//
+//
 
 /**
  * Description:
@@ -79,33 +224,6 @@ async function download(dataset, startTime, endTime) {
     }
     await fs.outputJson(filePath, data);
     return filePath;
-}
-
-/**
- * Description:
- *      get data from Optix timeseries endpoint and transform it into tsv format
- * @param {string} dataset dataset name (required).
- * @param {string} chunkStart start time(required).
- * @param {string} chunkEnd end time (required).
- * @return {string} tsv string containing data from the time chunk starting at chunkStart
- */
-async function getTsvData(dataset, chunkStart, chunkEnd) {
-    startTime = chunkStart.format("YYYY/MM/DD HH:mm:ss");
-    endTime = chunkEnd.format("YYYY/MM/DD HH:mm:ss");
-
-    try {
-        const chunk_data =
-        await getDataset(
-            dataset,
-            startTime,
-            endTime);
-        const tsv_data = chunk_data.map(({metric, tags, aggregateTags, dps}) =>
-            Object.entries(dps).map(([epoch_time, value]) =>
-                `${metric}\t${epoch_time}\t${value}\t${JSON.stringify(tags)}\t[${aggregateTags.toString()}]`
-            ).join("\n")
-        ).join("\n");
-        return tsv_data;
-    } catch(err) { return false; }
 }
 
 /**
@@ -184,6 +302,10 @@ async function search(dataset, max) {
 }
 
 module.exports = {
+    v2: {
+        getDataFromApp: getDataFromApp,
+
+    },
     getDataset: getDataset,
     download: download,
     createDataset: createDataset,

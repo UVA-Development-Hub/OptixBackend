@@ -1,3 +1,4 @@
+const apps = require("./routes/apps");
 const metadata = require("./routes/metadata");
 const dataset = require("./routes/dataset");
 const groups = require("./routes/groups");
@@ -13,5 +14,6 @@ module.exports = (app) => {
     entity(app);
     swagger(app);
     tags(app);
+    apps(app);
     return app;
 };

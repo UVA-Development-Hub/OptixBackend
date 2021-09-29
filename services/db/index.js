@@ -1,5 +1,84 @@
 const db = require("../../db");
 
+async function listAccessibleApps(username, groups) {
+    try {
+        const query = `
+            select
+                id,
+                username,
+                app_name
+            from apps
+            where username='${username}'
+            union
+            select
+            	id,
+            	username,
+            	app_name
+            from apps
+            where id in (
+            	select
+            		app_id
+            	from group_access
+            	where group_name in (${groups.map(group => `'${group}'`).toString()})
+            	union
+            	select
+            		app_id
+            	from app_access
+            	where username='${username}'
+            )
+            order by id asc
+        `;
+        const result = await db.query(query);
+        return {
+            apps: result.rows
+        }
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+
+}
+
+async function listOwnedApps(username) {
+    // select id, username, app_name from apps where username=${username}
+    try {
+        const query = `SELECT id, username, app_name from apps where username='${username}'`;
+        const result = await db.query(query);
+        console.log(result.rows);
+        return {
+            apps: result.rows
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+async function getAppMetrics(app_id) {
+    // select metric from metrics where app_id=${app_id}
+    try {
+        const query = `SELECT metric FROM metrics WHERE app_id=${app_id}`;
+        const result = await db.query(query);
+        return {
+            metrics: result.rows.map(row => row.metric)
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+// ------------------------------
+// ------------------------------
+// ------------------------------
+// ------------------------------
+// ------------------------------
 function ReduceSensorData(sensor) {
     return {
         name: sensor.name,
@@ -8,12 +87,10 @@ function ReduceSensorData(sensor) {
         entity_type_id: sensor.entity_type_id
     }
 }
-
 async function getInternalIdFromEntityId(entity_id) {
     const { rows: [{id}, _] } = await db.query(`SELECT id FROM datasets WHERE entity_id='${entity_id}'`);
     return id;
 }
-
 async function getSensors() {
     try {
         const response = await db.query("SELECT entity_id, name, sensor_type FROM datasets;");
@@ -30,7 +107,6 @@ async function getSensors() {
         }
     }
 }
-
 async function addSensorToGroup(entity_id, group) {
 
     try {
@@ -58,7 +134,6 @@ async function addSensorToGroup(entity_id, group) {
         }
     }
 }
-
 async function addSensorTypeToGroup(entity_type_id, group) {
     try {
         const response = await db.query(`INSERT INTO group_dataset_type(group_name, entity_type) VALUES ('${group}', '${entity_type_id}')`);
@@ -78,7 +153,6 @@ async function addSensorTypeToGroup(entity_type_id, group) {
         }
     }
 }
-
 async function removeSensorFromGroup(entity_id, group) {
     try {
         const dataset_id = await getInternalIdFromEntityId(entity_id);
@@ -95,7 +169,6 @@ async function removeSensorFromGroup(entity_id, group) {
         }
     }
 }
-
 async function removeSensorTypeFromGroup(entity_type_id, group) {
     try {
         const response = await db.query(`DELETE FROM group_dataset_type WHERE entity_type='${entity_type_id}' AND group_name='${group}'`);
@@ -111,7 +184,6 @@ async function removeSensorTypeFromGroup(entity_type_id, group) {
         }
     }
 }
-
 async function sensorAccessByGroup(group) {
     try {
 
@@ -145,7 +217,6 @@ async function sensorAccessByGroup(group) {
         }
     }
 }
-
 async function sensorAccessibleBy(entity_id) {
     try {
         // Get the internal id of the sensor entity
@@ -182,7 +253,6 @@ async function sensorAccessibleBy(entity_id) {
         }
     }
 }
-
 async function checkUserAccess(user_groups, entity_id) {
     const { success, groups: accessing_groups } = await sensorAccessibleBy(entity_id);
     if(!success) return false;
@@ -196,14 +266,11 @@ async function checkUserAccess(user_groups, entity_id) {
 
     return access;
 }
-
 async function getDatasetInfo(dataset) {
     const { rows } = await db.query(`SELECT * FROM datasets WHERE name='${dataset}'`);
     return rows;
 }
-
 // ------------------------------
-
 async function getDatasets() {
     const { rows } = await db.query(
         `SELECT *
@@ -211,13 +278,11 @@ async function getDatasets() {
     );
     return rows;
 }
-
 // ------------------------------
 // ------------------------------
 // ------------------------------
 // ------------------------------
 // ------------------------------
-
 async function addDataset(entity_id, entity_type_id, name, sensor_type) {
     const id = await getDatasetIdByEntity(entity_type_id, entity_id);
     if (id) {
@@ -229,7 +294,6 @@ async function addDataset(entity_id, entity_type_id, name, sensor_type) {
     );
     return await getDatasetIdByEntity(entity_type_id, entity_id);
 }
-
 async function getDatasetIdByName(name) {
     const { rows } = await db.query("SELECT id FROM datasets WHERE name = $1", [name]);
     // dataset not found
@@ -238,7 +302,6 @@ async function getDatasetIdByName(name) {
     }
     return rows[0].id;
 }
-
 async function getDatasetIdByEntity(entity_type_id, entity_id) {
     const {
         rows,
@@ -252,8 +315,6 @@ async function getDatasetIdByEntity(entity_type_id, entity_id) {
     }
     return rows[0].id;
 }
-
-
 async function getDatasetEntityByName(name) {
     const { rows } = await db.query("SELECT * FROM datasets WHERE name = $1", [name]);
     if (rows.length === 0) {
@@ -263,6 +324,11 @@ async function getDatasetEntityByName(name) {
 }
 
 module.exports = {
+    v2: {
+        listAccessibleApps,
+        listOwnedApps,
+        getAppMetrics
+    },
     getSensors,
     addSensorToGroup,
     addSensorTypeToGroup,
