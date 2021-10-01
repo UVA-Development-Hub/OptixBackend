@@ -28,14 +28,16 @@ app.use(express.static(path.join(__dirname, "public")));
 // Authenticator
 if(config.nodeEnv === "PRODUCTION") {
     console.debug("Enabled production authenticators");
-    const { authenticate, require_admin, dataset_permission_check } = require("./services/auth");
+    const { v2: { authenticate, appAccessCheck} } = require("./services/auth");
     app.use(authenticate);
-    app.use("/groups", require_admin);
-    app.use("/dataset", dataset_permission_check);
+    app.use("/apps/data/:app_id", appAccessCheck);
+    app.use("/apps/download/:app_id", appAccessCheck);
+    app.use("/apps/metrics/:app_id", appAccessCheck);
 } else {
     // Outside of production, each request is assigned a user
     // variable with access to every group in the system
-    console.warn("Using production authentiator (INSECURE)");
+    console.warn("(INSECURE) Mocking production authentiator");
+    console.warn("(INSECURE) Requests will mostly be allowed to ignore authentication requirements");
     const { getGroups } = require("./services/cognito");
     var allGroups = [];
     getGroups()

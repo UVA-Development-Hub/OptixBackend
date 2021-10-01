@@ -5,6 +5,7 @@ const CognitoExpress = new (require("cognito-express"))({
     tokenUse: "access",
     tokenExpiration: 3600000,
 });
+const { v2: dbHelper } = require("../db");
 
 const NeedsAdmin = "this endpoint requires admin access. ensure the access token provided in the access-control-token header is valid and that its owner has membership in the admin_group_crud group";
 const NeedsApprovedUser = "a valid access-control-token was provided, but the user must be approved before accessing endpoints";
@@ -116,7 +117,42 @@ async function dataset_permission_check(req, res, next) {
     }
 }
 
+// Checks to see if the user represented by the presented token
+// actually has permission to view the app which they requested.
+async function appAccessCheck(req, res, next) {
+    try {
+        const app_id = req.params.app_id;
+        const { accessible, error } = await dbHelper.userAccessCheck(
+            req.user.username,
+            req.user["cognito:groups"],
+            app_id
+        );
+        // (accessible && error) is not possible
+        if(accessible && !error) {
+            next();
+            return;
+        }
+        if(!accessible && !error) {
+            res.status(403).send({
+                message: "insufficient permissions to view this resource"
+            });
+            return;
+        }
+        throw error;
+    } catch(err) {
+        console.error(err);
+        res.status(500).send({
+            error: err,
+            message: "unexpected error in appAccessCheck"
+        });
+    }
+}
+
 module.exports = {
+    v2: {
+        authenticate,
+        appAccessCheck
+    },
     authenticate,
     require_admin,
     dataset_permission_check

@@ -2,6 +2,7 @@
 const { v2: dbHelper } = require("../../services/db");
 const { v2: datasetHelper } = require("../../services/dataset");
 const { DateTime } = require("luxon");
+const createError = require("http-errors");
 
 /**
  * List apps
@@ -157,10 +158,20 @@ async function downloadDataFromApp(req, res, next) {
         const tags = req.query.tags;
         const timezone = req.query.timezone || DateTime.local().zoneName;
 
+        if(!start_time) {
+            res.status(400).send({
+                message: "missing required querystring argument start_time"
+            });
+            return;
+        }
+
         const asyncIterator = datasetHelper.downloadTSVData(app_id, start_time, end_time, timezone, metric, tags)
         const filename = await asyncIterator.next();
+        if(!filename.value) {
+            throw "filename failed to generate";
+        }
         res.set({
-            "Content-Disposition": `attachment; filename="${filename}"`,
+            "Content-Disposition": `attachment; filename="${filename.value}"`,
             "Content-Type": "text/csv",
         });
         res.write("metric\ttimestamp\tvalue\ttags\taggregate tags");
@@ -195,5 +206,5 @@ module.exports = app => {
     app.get("/apps/myapps", myApps);
     app.get("/apps/metrics/:app_id", listMetrics);
     app.get("/apps/data/:app_id", dataFromApp);
-    app.get("apps/download/:app_id", downloadDataFromApp);
+    app.get("/apps/download/:app_id", downloadDataFromApp);
 }

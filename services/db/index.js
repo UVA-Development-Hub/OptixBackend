@@ -1,33 +1,38 @@
 const db = require("../../db");
 
-async function listAccessibleApps(username, groups) {
-    try {
-        const query = `
+function generateAccessibilityQuery(username, groups) {
+    const query = `
+        select
+            id,
+            username,
+            app_name
+        from apps
+        where username='${username}'
+        union
+        select
+            id,
+            username,
+            app_name
+        from apps
+        where id in (
             select
-                id,
-                username,
-                app_name
-            from apps
-            where username='${username}'
+                app_id
+            from group_access
+            where group_name in (${groups.map(group => `'${group}'`).toString()})
             union
             select
-            	id,
-            	username,
-            	app_name
-            from apps
-            where id in (
-            	select
-            		app_id
-            	from group_access
-            	where group_name in (${groups.map(group => `'${group}'`).toString()})
-            	union
-            	select
-            		app_id
-            	from app_access
-            	where username='${username}'
-            )
-            order by id asc
-        `;
+                app_id
+            from app_access
+            where username='${username}'
+        )
+        order by id asc
+    `;
+    return query;
+}
+
+async function listAccessibleApps(username, groups) {
+    try {
+        const query = generateAccessibilityQuery(username, groups);
         const result = await db.query(query);
         return {
             apps: result.rows
@@ -66,6 +71,26 @@ async function getAppMetrics(app_id) {
         return {
             metrics: result.rows.map(row => row.metric)
         };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+async function userAccessCheck(username, groups, app_id) {
+    try {
+        const query = `
+            select *
+            from (
+                ${generateAccessibilityQuery(username, groups)}
+            ) as subquery
+            where subquery.id=${app_id}`;
+        const result = await db.query(query);
+        return {
+            accessible: result.rows?.length === 1
+        }
     } catch(err) {
         console.error(err);
         return {
@@ -327,7 +352,8 @@ module.exports = {
     v2: {
         listAccessibleApps,
         listOwnedApps,
-        getAppMetrics
+        getAppMetrics,
+        userAccessCheck
     },
     getSensors,
     addSensorToGroup,

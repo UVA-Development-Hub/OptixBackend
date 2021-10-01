@@ -26,22 +26,14 @@ const openTSDBAgent = axios.create({
 async function getDataFromApp(app_id, startTime, endTime, timezone, metric, tags) {
     try {
         var metrics;
-        if(metric !== "") metrics = [metric];
+        if(metric) metrics = [metric];
         else {
-            const metricsQuery = dbHelper.getAppMetrics(app_id);
+            const metricsQuery = await dbHelper.getAppMetrics(app_id);
             if(metricsQuery.err)
             throw metricsQuery.err;
             metrics = metricsQuery.metrics;
         }
-        console.debug("list of queried metrics:");
-        console.debug(metrics);
-
-        function toUTC(time) {
-            if(/^\d+$/.test(time)) return time;
-            return DateTime.fromFormat(time, "yyyy/MM/dd HH:mm:ss", {
-                zone: timezone
-            }).setZone("UTC").toFormat("x");
-        }
+        metrics = metrics.map(metric => `m.${app_id}.${metric}`);
 
         const data = {};
         for(const metric of metrics) {
@@ -71,27 +63,41 @@ async function getDataFromApp(app_id, startTime, endTime, timezone, metric, tags
 }
 
 // Helper function for the main TSV downloading function
-async function getTsvData(dataset, chunkStart, chunkEnd, timezone, metric, tags) {
+async function getTsvData(app_id, chunkStart, chunkEnd, timezone, metric, tags) {
     startTime = chunkStart.format("YYYY/MM/DD HH:mm:ss");
     endTime = chunkEnd.format("YYYY/MM/DD HH:mm:ss");
 
     try {
-        const chunk_data =
+        const { data, error } =
             await getDataFromApp(
-                dataset,
+                app_id,
                 startTime,
                 endTime,
                 timezone,
                 metric,
                 tags
             );
-            const tsv_data = chunk_data.map(({metric, tags, aggregateTags, dps}) =>
-                Object.entries(dps).map(([epoch_time, value]) =>
-                `${metric}\t${epoch_time}\t${value}\t${JSON.stringify(tags)}\t[${aggregateTags.toString()}]`
-            ).join("\n")
-        ).join("\n");
+
+        if(error)
+            throw error;
+
+        console.debug("data");
+        console.debug(data);
+
+        const tsv_data =
+            Object.keys(data).map(key =>
+                Object.entries(data[key].dps).map(([epoch_time, value]) =>
+                    `${key}\t${epoch_time}\t${value}\t${JSON.stringify(data[key].tags)}\t[${data[key].aggregateTags.toString()}]`
+                ).join("\n")
+            );
+
+        console.debug("tsv data");
+        console.debug(tsv_data);
+        console.debug('.');
+
+
         return tsv_data;
-    } catch(err) { return false; }
+    } catch(err) { console.log(err); return false; }
 }
 
 /**
@@ -116,9 +122,9 @@ async function* downloadTSVData(app_id, start_time, end_time, timezone, metric, 
             }).setZone("UTC").toFormat("x");
         }
 
-        let chunk_time = moment(toUTC(start_time));
-        let chunk_end = end_time ? moment(toUTC(endTime)) : moment();
-        const filename = `${app_id}.${chunk_time.format("x")}.${chunk_end.format("x")}.tsv}`;
+        let chunk_time = moment(toUTC(start_time), "x");
+        let chunk_end = end_time ? moment(toUTC(endTime), "x") : moment();
+        const filename = `app${app_id}.start${chunk_time.format("x")}.end${chunk_end.format("x")}.tsv`;
         yield filename;
 
         // Break the request into 30m chunks
@@ -130,7 +136,7 @@ async function* downloadTSVData(app_id, start_time, end_time, timezone, metric, 
             // request tsv data for the current chunk
             let chunk =
                 await getTsvData(
-                    dataset,
+                    app_id,
                     chunk_time,
                     next_chunk_end,
                     timezone,
@@ -304,7 +310,7 @@ async function search(dataset, max) {
 module.exports = {
     v2: {
         getDataFromApp: getDataFromApp,
-
+        downloadTSVData: downloadTSVData,
     },
     getDataset: getDataset,
     download: download,
