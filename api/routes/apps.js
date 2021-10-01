@@ -64,6 +64,44 @@ async function myApps(req, res, next) {
 }
 
 /**
+ * List apps
+ * @route GET /apps/search
+ * @param {string} query.required
+ * @group apps
+ * @returns {object} 200 - returns a list of apps that match the given query and you have permission to view
+ * @returns {Error} default - Unexpected error
+ */
+async function searchApps(req, res, next) {
+    try {
+        const username = req.user.username;
+        const groups = req.user["cognito:groups"];
+        const searchQuery = req.query.query;
+        if(!searchQuery) {
+            res.status(400).send({
+                message: "missing querystring argument 'query'"
+            });
+            return;
+        }
+        const { error, apps } = await dbHelper.searchApps(username, groups, searchQuery);
+        res.send({
+            error,
+            apps
+        });
+    } catch(err) {
+        if (
+            err.response &&
+            err.response.status &&
+            err.response.data &&
+            err.response.data.message
+        ) {
+            next(createError(err.response.status, err.response.data.message));
+        } else {
+            next(createError(500, err));
+        }
+    }
+}
+
+/**
  * List metrics for a particular app. You must have permission to access the requested app
  * @route GET /apps/metrics/<app_id>
  * @param {int} app_id.required in the path, provide the unique integer id of the app you'd like metrics for (required)
@@ -207,4 +245,5 @@ module.exports = app => {
     app.get("/apps/metrics/:app_id", listMetrics);
     app.get("/apps/data/:app_id", dataFromApp);
     app.get("/apps/download/:app_id", downloadDataFromApp);
+    app.get("/apps/search", searchApps);
 }

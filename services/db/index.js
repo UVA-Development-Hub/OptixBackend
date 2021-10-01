@@ -51,10 +51,30 @@ async function listOwnedApps(username) {
     try {
         const query = `SELECT id, username, app_name from apps where username='${username}'`;
         const result = await db.query(query);
-        console.log(result.rows);
         return {
             apps: result.rows
         };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+async function searchApps(username, groups, searchQuery) {
+    try {
+        const query = `
+            select *
+            from (
+                ${generateAccessibilityQuery(username, groups)}
+            ) as subquery
+            where lower(subquery.app_name) like lower('%${searchQuery}%')
+        `;
+        const result = await db.query(query);
+        return {
+            apps: result.rows
+        }
     } catch(err) {
         console.error(err);
         return {
@@ -90,7 +110,7 @@ async function userAccessCheck(username, groups, app_id) {
         const result = await db.query(query);
         return {
             accessible: result.rows?.length === 1
-        }
+        };
     } catch(err) {
         console.error(err);
         return {
@@ -353,7 +373,8 @@ module.exports = {
         listAccessibleApps,
         listOwnedApps,
         getAppMetrics,
-        userAccessCheck
+        userAccessCheck,
+        searchApps
     },
     getSensors,
     addSensorToGroup,
