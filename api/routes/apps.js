@@ -75,13 +75,7 @@ async function searchApps(req, res, next) {
     try {
         const username = req.user.username;
         const groups = req.user["cognito:groups"];
-        const searchQuery = req.query.query;
-        if(!searchQuery) {
-            res.status(400).send({
-                message: "missing querystring argument 'query'"
-            });
-            return;
-        }
+        const searchQuery = req.query.query || "";
         const { error, apps } = await dbHelper.searchApps(username, groups, searchQuery);
         res.send({
             error,
