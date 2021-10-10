@@ -1,5 +1,83 @@
 const db = require("../../db");
 
+async function metadataExists(app_id, key) {
+    const query = `SELECT id FROM metadata WHERE app_id=${app_id} AND key='${key}'`;
+    try {
+        const result = await db.query(query);
+        return {
+            exists: result.rows.length > 0
+        }
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+async function metadataInsert(app_id, key, value) {
+    const query = `INSERT INTO metadata(app_id, key, value) VALUES(${app_id}, '${key}', '${value}')`;
+    try {
+        const result = await db.query(query);
+        console.debug(result);
+        return {
+            success: true
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+async function metadataReplace(app_id, key, value) {
+    const query = `UPDATE metadata SET value='${value}' WHERE app_id=${app_id} AND key='${key}'`;
+    try {
+        const result = await db.query(query);
+        console.debug(result);
+        return {
+            success: true
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+async function metadataDelete(app_id, key) {
+    const query = `DELETE FROM metadata WHERE app_id=${app_id} AND key='${key}'`;
+    try {
+        const result = await db.query(query);
+        console.debug(result);
+        return {
+            success: true
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
+async function metadataFetch(app_id) {
+    const query = `SELECT key, value FROM metadata WHERE app_id=${app_id}`;
+    try {
+        const result = await db.query(query);
+        return {
+            metadata: result.rows
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err
+        };
+    }
+}
+
 function generateAccessibilityQuery(username, groups) {
     const query = `
         select
@@ -370,6 +448,11 @@ async function getDatasetEntityByName(name) {
 
 module.exports = {
     v2: {
+        metadataExists,
+        metadataInsert,
+        metadataReplace,
+        metadataDelete,
+        metadataFetch,
         listAccessibleApps,
         listOwnedApps,
         getAppMetrics,
