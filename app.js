@@ -34,6 +34,7 @@ if(config.nodeEnv === "PRODUCTION") {
     app.use("/apps/download/:app_id", appAccessCheck);
     app.use("/apps/metrics/:app_id", appAccessCheck);
     app.use("/apps/metadata/:app_id", appAccessCheck);
+    app.use("/apps/access/:app_id", appAccessCheck);
 } else {
     // Outside of production, each request is assigned a user
     // variable with access to every group in the system

@@ -216,7 +216,7 @@ async function addUserToApp(app_id, username) {
     try {
         const existsQuery = `SELECT id FROM app_access WHERE app_id=${app_id} AND username='${username}'`;
         const existsResult = await db.query(existsQuery);
-        if(existsQuery?.rows?.length) {
+        if(existsResult?.rows?.length) {
             return {
                 modified: false
             }
@@ -238,12 +238,13 @@ async function removeUserFromApp(app_id, username) {
     try {
         const existsQuery = `SELECT id FROM app_access WHERE app_id=${app_id} AND username='${username}'`;
         const existsResult = await db.query(existsQuery);
-        if(existsQuery?.rows?.length === 0) {
+        if(existsResult?.rows?.length === 0) {
             return {
                 modified: false
             }
         }
-        const query = `INSERT INTO app_access(username, app_id) VALUES('${username}', ${app_id})`;
+        const query = `DELETE FROM app_access WHERE username='${username}' AND app_id=${app_id}`;
+        console.log(query);
         const result = await db.query(query);
         return {
             modified: true
