@@ -1,4 +1,5 @@
 const apps = require("./routes/apps");
+const appAccess = require("./routes/app-access");
 const metadata = require("./routes/metadata");
 const dataset = require("./routes/dataset");
 const groups = require("./routes/groups");
@@ -15,5 +16,6 @@ module.exports = (app) => {
     swagger(app);
     tags(app);
     apps(app);
+    appAccess(app);
     return app;
 };
