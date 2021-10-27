@@ -49,7 +49,7 @@ function authenticate(req, res, next) {
                 unauthorized(res, NoUser);
                 return;
             }
-            if(!authenticated_user["cognito:groups"]) authenticated_user = [];
+            if(!authenticated_user["cognito:groups"]) authenticated_user["cognito:groups"] = [];
             req.user = authenticated_user;
             if(err) unauthorized(res, AuthException);
             else if(req.user["cognito:groups"].indexOf("approved") === -1) unauthorized(res, NeedsApprovedUser);
